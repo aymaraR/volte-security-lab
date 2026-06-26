@@ -64,6 +64,27 @@ Current sample rate is 11.52 MHz with a base rate of 23.04 MHz (x2 decimation)
 Setting frequency: DL=2680.0 Mhz, UL=2560.0 MHz for cc_idx=0 nof_prb=50
 ```
 
-## Siguiente paso
+## 3. Subir ue.conf al contenedor
 
-Levantar srsue.
+```bash
+docker exec srsue mkdir -p /root/ue-config
+docker cp ~/voLTE-lab/srsran/ue-config/ue.conf srsue:/root/ue-config/ue.conf
+docker exec srsue ls -la /root/ue-config
+```
+
+Deberíamos tener algo como:
+
+```
+total 28
+drwxr-xr-x 2 root root  4096 Jun 25 03:29 .
+drwx------ 1 root root  4096 Jun 25 03:29 ..
+-rw-r--r-- 1 1000 1000 19440 Jun 25 03:19 ue.conf
+```
+
+## 4. Arrancar el UE
+
+En la misma terminal del UE, con el eNB todavía corriendo en la primera terminal:
+
+```bash
+docker exec -it srsue bash -c "cd /root/ue-config && srsue ue.conf"
+```
