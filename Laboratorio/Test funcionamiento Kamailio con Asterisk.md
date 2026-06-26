@@ -36,7 +36,7 @@ docker cp ~/voLTE-lab/asterisk/extensions.conf asterisk:/etc/asterisk/extensions
 
 Abre 4 ventanas de la app "Ubuntu" (sin cerrar las anteriores).
 
-**Terminal 1 — S-CSCF (arrancar primero):**
+**Terminal 1 — S-CSCF:**
 ```bash
 docker exec -it kamailio kamailio -DD -E -e -f /usr/local/etc/kamailio/scscf.cfg
 ```
