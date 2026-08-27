@@ -29,7 +29,7 @@
 │       ├── 01_diagrama_laboratorio.md  ← Topología del entorno
 │       └── 02_flujo_llamada_volte.md   ← Ciclo de vida de una llamada VoLTE
 │
-└── 📁 proyecto/                        ← (Próximamente) Implementación
+└── 📁 Laboratorio/                        ← (Próximamente) Implementación
 ```
 
 ---
@@ -53,9 +53,9 @@ Construir un **laboratorio de seguridad virtualizado** que simule una red 4G LTE
 ## 📚 Fases del Proyecto
 
 - [x] **Fase 0:** Definición del alcance y objetivos
-- [ ] **Fase 1:** Investigación teórica (redes 4G LTE y VoLTE)
-- [ ] **Fase 2:** Documentación de herramientas
-- [ ] **Fase 3:** Diseño de arquitectura del laboratorio
+- [x] **Fase 1:** Investigación teórica (redes 4G LTE y VoLTE)
+- [x] **Fase 2:** Documentación de herramientas
+- [x] **Fase 3:** Diseño de arquitectura del laboratorio
 - [ ] **Fase 4:** Implementación y configuración
 - [ ] **Fase 5:** Ejecución de pruebas y análisis de resultados
 
