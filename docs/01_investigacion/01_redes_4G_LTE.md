@@ -52,7 +52,7 @@ El corazón de la red. Sus nodos principales son:
 
 ## 3. Interfaces Clave
 
-![Arquitectura VoLTE](imagenes/arquitectura-volte.png)
+![Arquitectura VoLTE](Imagenes/arquitectura-volte.png)
 
 | Interfaz | Entre | Protocolo |
 |---|---|---|
