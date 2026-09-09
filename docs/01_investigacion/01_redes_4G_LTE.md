@@ -52,7 +52,7 @@ El corazón de la red. Sus nodos principales son:
 
 ## 3. Interfaces Clave
 
-![Arquitectura VoLTE]([https://ejemplo.com/arquitectura-volte.png](https://usmcl-my.sharepoint.com/:i:/g/personal/aymara_rojas_usm_cl/IQCABaUnghaNTo9oVEbGD59XAS4xe9rNG3_VB366Ufy2fH8?e=hN6vFv))
+![Arquitectura VoLTE](https://usmcl-my.sharepoint.com/:i:/g/personal/aymara_rojas_usm_cl/IQCABaUnghaNTo9oVEbGD59XAS4xe9rNG3_VB366Ufy2fH8?e=hN6vFv)
 
 | Interfaz | Entre | Protocolo |
 |---|---|---|
