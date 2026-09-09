@@ -1,6 +1,48 @@
-# 📡 Interceptación de Llamadas VoLTE en Redes 4G LTE — Laboratorio de Seguridad
+# 📡 Laboratorio de seguridad VoLTE sobre Redes 4G/LTE 
 
 > **Propósito académico:** Este repositorio documenta la investigación, herramientas y configuración de un laboratorio virtualizado para el estudio de vulnerabilidades en redes 4G LTE / VoLTE. Todo el trabajo se realiza en un entorno **completamente aislado y controlado**, sin afectar redes reales.
+
+---
+ 
+## ❓ Pregunta a resolver
+ 
+¿De qué manera un entorno de experimentación por software permite identificar y mitigar vulnerabilidades en la señalización (SIP/IMS) y el transporte (RTP) de una red VoLTE, sin comprometer infraestructuras reales de un operador?
+ 
+---
+ 
+## 🧩 Problema
+ 
+Las redes VoLTE combinan varias capas críticas —radio LTE, core de red (EPC), señalización SIP/IMS y transporte de voz (RTP)— y cada una tiene superficies de ataque conocidas (interceptación, denegación de servicio, suplantación de identidad, cifrado débil) que son difíciles y riesgosas de validar directamente sobre una red comercial en producción.
+ 
+---
+ 
+## 💡 Propuesta de solución
+ 
+Un laboratorio 100% software, sin costo de hardware, que emula la cadena VoLTE completa mediante componentes de código abierto (srsRAN en modo ZeroMQ, Open5GS, Kamailio, Asterisk) desplegados en contenedores Docker sobre una red aislada. Sobre ese entorno se ejecutan siete vectores de ataque documentados, cada uno con su procedimiento, métricas de éxito y contramedida validada, siguiendo una metodología reproducible de cuatro fases (reconocimiento, análisis de configuración, explotación, validación de contramedida).
+ 
+---
+ 
+## 🏢 Valor para la empresa
+ 
+- **Validación previa a producción:** permite probar configuraciones y parches de seguridad antes de desplegarlos en la red comercial, reduciendo el riesgo de interrupciones.
+- **Evidencia reproducible y verificable:** capturas con hash SHA-256, métricas cuantitativas y logs, útiles para auditorías internas o cumplimiento normativo (GSMA, protección de datos).
+- **Entrenamiento del equipo de ciberseguridad:** cada vector de ataque viene con su contramedida exacta, sirviendo como runbook operativo.
+- **Reducción de pérdidas económicas:** identificación temprana de vulnerabilidades que podrían derivar en fraude tarifario, robo de identidad o sanciones regulatorias.
+- **Costo de infraestructura casi nulo:** al no requerir SDR ni terminales físicos, es replicable y escalable como práctica recurrente del equipo, no solo como ejercicio puntual.
+---
+
+## 🆚 Diferencias entre el laboratorio y una red real
+ 
+| Aspecto | Laboratorio | Red real |
+|---|---|---|
+| Canal de radio | Loopback ZMQ, sin efectos de propagación | RF física con fading, interferencia y movilidad |
+| Escala | 1-2 UE emulados | Miles/millones de suscriptores concurrentes |
+| Software | Open-source de referencia (srsRAN, Open5GS, Kamailio) | Core comercial certificado con hardening propietario |
+| Interconexión | Red bridge aislada, sin exposición externa | Roaming, señalización SS7/Diameter externa, integración OSS/BSS |
+| Terminales | UE emulado con credenciales en MongoDB | Smartphones comerciales con USIM certificada |
+| Generación | Solo 4G/LTE | Coexistencia con 5G y otras generaciones |
+ 
+Estas diferencias son la razón por la que el desafío original propone, como evolución, una **arquitectura híbrida**: sumar un nodo de acceso inalámbrico real y terminales físicos como paso intermedio entre el laboratorio y la red de producción.
 
 ---
 
@@ -36,17 +78,20 @@
 
 ## 🎯 Objetivo del Proyecto
 
-Construir un **laboratorio de seguridad virtualizado** que simule una red 4G LTE completa con soporte VoLTE, para estudiar y demostrar el vector de ataque de **interceptación de llamadas** usando herramientas de código abierto.
+Construir y operar un laboratorio de seguridad VoLTE 100% software, aislado y sin costo de hardware, como base para validar los siete vectores de ataque documentados en [`docs/01_investigacion/03_vectores_ataque.md`](docs/01_investigacion/03_vectores_ataque.md).
 
+---
 ### Componentes del Laboratorio
 
-| Componente | Software | Función |
+| Capa | Software | Función |
 |---|---|---|
-| 📱 Teléfono + Antena | srsRAN 4G | UE (dispositivo) y eNodeB (antena) |
-| 🧠 Core de Red (EPC) | Open5GS | MME, SGW, PGW, HSS |
-| ☎️ Central IMS | Kamailio + Asterisk | SIP proxy + RTP media |
-| 🐉 Atacante | Kali Linux | Herramientas de interceptación |
-| 👁️ Visor | Wireshark | Captura y análisis de paquetes |
+| Radio (RAN) | srsRAN 4G (modo ZMQ) | UE y eNodeB emulados |
+| Core de red (EPC) | Open5GS | MME, SGW, PGW, HSS, PCRF |
+| Base de datos de suscriptores | MongoDB | Almacena credenciales SIM emuladas |
+| IMS | Kamailio + Asterisk + FHoSS | Señalización SIP y media RTP |
+| Orquestación | Docker + Docker Compose | Despliegue de contenedores aislados |
+| Ataque | Kali Linux (contenedor) | Suite de pentesting |
+| Análisis | Wireshark / tshark | Captura y análisis de protocolos |
 
 ---
 
