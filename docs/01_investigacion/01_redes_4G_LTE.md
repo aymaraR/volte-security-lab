@@ -52,12 +52,7 @@ El corazón de la red. Sus nodos principales son:
 
 ## 3. Interfaces Clave
 
-```
-UE ←(LTE-Uu)→ eNB ←(S1-MME)→ MME
-                    ←(S1-U)→  SGW ←(S5/S8)→ PGW ←→ Internet
-MME ←(S6a)→ HSS
-MME ←(S11)→ SGW
-```
+![Arquitectura VoLTE]([https://ejemplo.com/arquitectura-volte.png](https://usmcl-my.sharepoint.com/:i:/g/personal/aymara_rojas_usm_cl/IQCABaUnghaNTo9oVEbGD59XAS4xe9rNG3_VB366Ufy2fH8?e=hN6vFv))
 
 | Interfaz | Entre | Protocolo |
 |---|---|---|
