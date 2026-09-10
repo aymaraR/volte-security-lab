@@ -13,6 +13,13 @@
  Catching           / MITM              (SS7-like)           intercept
 ```
 
+| Capa | Elemento | Amenazas principales |
+|---|---|---|
+| Radio (Uu) | eNodeB / UE | Cifrado nulo o débil (EEA0), rogue eNodeB, jamming (fuera de alcance del laboratorio) |
+| Core (EPC) | MME/SGW/PGW | Manipulación de bearers, exhaustion de recursos, ataques a interfaces Diameter |
+| Señalización (IMS/SIP) | P/I/S-CSCF | Interceptación (MITM), DoS por inundación, suplantación de identidad |
+| Transporte de voz (RTP) | Media plane | Interceptación de audio, inyección de paquetes RTP, secuestro de sesión |
+
 ---
 
 ## 2. Ataques en la Capa Radio (LTE-Uu)
@@ -105,4 +112,11 @@ En este laboratorio **simulamos el escenario de atacante en el mismo segmento de
 - Raza, D. et al. (2019). *Breaking LTE on Layer Two*. IEEE S&P 2019.
 - Hussain, S. et al. (2019). *Insecure Connection Bootstrapping in Cellular Networks*. WiSec 2019.
 - 3GPP TR 33.926 — Security assurance specification for 5G
+- 3GPP TS 33.203 / TS 33.401 — Seguridad de acceso IMS y arquitectura de seguridad SAE.
 - Kim, H. et al. (2020). *LTEInspector: A Systematic Approach for Adversarial Testing of 4G LTE*. NDSS 2018.
+- MITRE ATT&CK for Mobile — https://attack.mitre.org/matrices/mobile/
+- RFC 3261, RFC 3325, RFC 5630.
+
+---
+
+**Siguiente sección:** [`../02_herramientas/`](../02_herramientas/) — Documentación de las herramientas empleadas en el laboratorio.
