@@ -2,7 +2,9 @@
 
 ## 1. ¿Qué es LTE?
 
-**LTE (Long Term Evolution)** es el estándar de comunicaciones móviles de cuarta generación (4G) definido por el 3GPP (3rd Generation Partnership Project). Representa una evolución de las redes 3G/UMTS hacia una arquitectura completamente basada en IP, eliminando los dominios de circuitos de voz tradicionales.
+**LTE (Long Term Evolution)** es el estándar de comunicaciones móviles de cuarta generación (4G) definido por el 3GPP (3rd Generation Partnership Project) a partir del Realese 8. Representa una evolución de las redes 3G/UMTS hacia una arquitectura completamente basada en conmutación de paquetes (all-IP), eliminando los dominios de circuitos de voz tradicionales. 
+
+Este documento describe la arquitectura de referencia de LTE —E-UTRAN y EPC—, sus componentes funcionales, las interfaces que los interconectan y los procedimientos de señalización más relevantes para comprender, más adelante, la superficie de ataque. Se establece además la correspondencia directa entre cada elemento teórico y su implementación de software dentro del laboratorio (srsRAN y Open5GS), de modo que sirva como referencia cruzada para los capítulos de herramientas y arquitectura.
 
 ### Características principales
 
@@ -28,17 +30,20 @@ El sistema LTE se denomina **EPS (Evolved Packet System)** y está formado por d
 
 El UE es cualquier dispositivo que se conecta a la red. Internamente tiene:
 - **ME (Mobile Equipment):** el hardware del teléfono.
-- **UICC / SIM:** tarjeta inteligente con credenciales de autenticación (IMSI, Ki, etc.).
+- **UICC / SIM / USIM:** tarjeta inteligente con credenciales de autenticación (IMSI, Ki, etc.).
 
 ### 2.2 E-UTRAN — Evolved UMTS Terrestrial Radio Access Network
 
 Es la capa de acceso radio. Su único nodo es:
 
-- **eNodeB (eNB):** La antena base. A diferencia de 3G, en LTE el eNB tiene inteligencia propia (no necesita un RNC separado). Se conecta con otros eNBs mediante la interfaz **X2** y con el core mediante la interfaz **S1**.
+- **eNodeB (eNB):** Estación base de LTE. A diferencia de 3G, en LTE el eNB tiene inteligencia propia (no necesita un RNC separado). Se conecta con otros eNBs mediante la interfaz **X2** y con el core mediante la interfaz **S1**.
+    - Gestión de recursos radio (scheduling, control de potencia).
+    - Cifrado e integridad de la interfaz radio (capa PDCP).
+    - Terminación de la interfaz S1 hacia el EPC y X2 hacia otros eNodeB (handover).
 
 ### 2.3 EPC — Evolved Packet Core
 
-El corazón de la red. Sus nodos principales son:
+Núcleo de red: movilidad, autenticación, enrutamiento IP y calidad de servicio, sus elementos son:
 
 | Nodo | Nombre completo | Función |
 |---|---|---|
@@ -54,15 +59,17 @@ El corazón de la red. Sus nodos principales son:
 
 ![Arquitectura VoLTE](../../Imagenes/arquitectura-volte.png)
 
-| Interfaz | Entre | Protocolo |
-|---|---|---|
-| LTE-Uu | UE ↔ eNB | PDCP, RLC, MAC, PHY |
-| S1-MME | eNB ↔ MME | S1AP (sobre SCTP) |
-| S1-U | eNB ↔ SGW | GTP-U (sobre UDP) |
-| S6a | MME ↔ HSS | Diameter |
-| S11 | MME ↔ SGW | GTPv2-C |
-| S5/S8 | SGW ↔ PGW | GTPv2-C / GTP-U |
-
+| Interfaz | Entre | Protocolo | Funcion |
+|---|---|---|---|
+| LTE-Uu | UE ↔ eNB | PDCP, RLC, MAC, PHY | Acceso radio |
+| S1-MME | eNB ↔ MME | S1AP (sobre SCTP) | Señalización de control |
+| S1-U | eNB ↔ SGW | GTP-U (sobre UDP) | Plano de usuario (datos) |
+| S6a | MME ↔ HSS | Diameter | Autenticación y perfil de suscriptor |
+| S11 | MME ↔ SGW | GTPv2-C | Control y datos entre gateways |
+| S5/S8 | SGW ↔ PGW | GTPv2-C / GTP-U | |
+| Gx | PGW ↔ PCRF | Diameter | Reglas de política y tarificación |
+| SGi | PGW ↔ PDN externa | IP | Salida hacia Internet o IMS |
+| X2 | eNodeB ↔ eNodeB | X2-AP | Coordinación entre celdas / handover |
 ---
 
 ## 4. Procedimiento de Conexión (Attach)
@@ -131,3 +138,7 @@ LTE usa el protocolo **EPS-AKA (Authentication and Key Agreement)** derivado de 
 - 3GPP TS 33.401 — 3GPP System Architecture Evolution (SAE); Security architecture
 - 3GPP TS 36.300 — E-UTRA and E-UTRAN Overall description
 - Raza, H. (2011). *A Brief Overview of LTE*. Internet Protocol Journal.
+
+---
+
+**Siguiente documento:** [`02_VoLTE.md`](02_VoLTE.md) — Protocolo de voz sobre LTE.
