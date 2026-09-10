@@ -1,8 +1,10 @@
 # 🗺️ Arquitectura del Laboratorio
 
-## 1. Visión General
+## 1. Vista general
 
-El laboratorio virtualiza una red 4G LTE completa con soporte VoLTE usando exclusivamente software de código abierto sobre Docker. Ningún componente emite señal de radio real — la interfaz de radio entre srsUE y srsENB se simula mediante **ZeroMQ** (mensajes sobre TCP).
+Nuestra solución se encuentra en un laboratorio que virtualiza una red 4G LTE completa con soporte VoLTE usando exclusivamente software de código abierto sobre Docker. Ningún componente emite señal de radio real — la interfaz de radio entre srsUE y srsENB se simula mediante **ZeroMQ** (mensajes sobre TCP).
+
+En este documento se encuentra la topología completa del laboratorio: qué contenedores existen, cómo se interconectan, qué direccionamiento IP usan y qué interfaz de red real (loopback, ZMQ, bridge Docker) transporta cada tramo de la cadena VoLTE. 
 
 ---
 
@@ -49,86 +51,7 @@ El laboratorio virtualiza una red 4G LTE completa con soporte VoLTE usando exclu
 
 ---
 
-## 3. Segmentación de Redes Docker
-
-El laboratorio usa **dos redes virtuales separadas** para reflejar la arquitectura real de un operador:
-
-| Red | Subred | Propósito |
-|---|---|---|
-| `lte-core` | `172.20.0.0/24` | Comunicación entre eNB, EPC (plano de control y usuario LTE) |
-| `ims-net` | `172.21.0.0/24` | Comunicación entre EPC, IMS (SIP/RTP), y atacante |
-
----
-
-## 4. Tabla de Contenedores y Direcciones IP
-
-| Contenedor | Imagen | Red(s) | IP(s) | Puerto(s) |
-|---|---|---|---|---|
-| `srsenb` | srsran/srsenb | lte-core | 172.20.0.2 | — |
-| `srsue` | srsran/srsue | lte-core | 172.20.0.3 | — |
-| `open5gs` | gradiant/open5gs | lte-core, ims-net | 172.20.0.10 / 172.21.0.5 | 36412/sctp (S1-MME) |
-| `kamailio` | kamailio/kamailio | ims-net | 172.21.0.10 | 5060/udp, 5060/tcp |
-| `asterisk` | andrius/asterisk | ims-net | 172.21.0.20 | 5060/udp, 10000-20000/udp |
-| `kali` | kalilinux/kali-rolling | ims-net | 172.21.0.99 | — |
-
----
-
-## 5. Interfaces Simuladas
-
-### ZeroMQ — Canal de Radio Virtual
-
-En lugar de usar hardware SDR (USRP, bladeRF, etc.), srsRAN usa ZeroMQ para simular la interfaz de radio:
-
-```
-srsUE                          srsENB
-  |                               |
-  | tx_port=tcp://*:2001 ─────>  rx_port=tcp://srsenb:2001
-  | rx_port=tcp://srsenb:2000 <─ tx_port=tcp://*:2000
-```
-
-### Interfaz TUN — Plano de Usuario
-
-Cuando el UE completa el Attach, Open5GS crea una interfaz TUN en el contenedor PGW/UPF para el plano de usuario:
-
-```bash
-# Dentro del contenedor Open5GS
-ip addr show ogstun
-# 10.45.0.1/16 — gateway del UE
-```
-
-El srsUE también crea una interfaz TUN en su contenedor:
-```bash
-# Dentro del contenedor srsUE
-ip addr show tun_srsue
-# 10.45.0.X/16 — IP asignada al "teléfono"
-```
-
----
-
-## 6. Flujo de Datos por Capa
-
-```
-CAPA DE APLICACIÓN (Voz)
-  └─ codec AMR-WB / G.711
-
-CAPA DE TRANSPORTE (IMS)
-  └─ RTP/UDP ──── encapsulado en ────> GTP-U/UDP
-
-CAPA DE RED (LTE Plano Usuario)
-  └─ GTP-U: tun_srsue <──> eNB <──> SGW <──> PGW <──> IMS
-
-CAPA DE CONTROL (LTE Señalización)
-  └─ NAS: UE ──> MME (sobre S1AP)
-  └─ S1AP: eNB ──> MME (sobre SCTP)
-  └─ GTPv2-C: MME ──> SGW ──> PGW
-
-CAPA DE SEÑALIZACIÓN IMS
-  └─ SIP: UE ──> Kamailio ──> Asterisk
-```
-
----
-
-## 7. Requisitos del Sistema Host
+## 3. Requisitos del Sistema Host
 
 | Recurso | Mínimo | Recomendado |
 |---|---|---|
@@ -139,23 +62,111 @@ CAPA DE SEÑALIZACIÓN IMS
 | Docker | 24.x | 25.x |
 | Docker Compose | v2.x | v2.x |
 
-### Módulos de kernel necesarios
+---
 
-```bash
-# SCTP (para S1AP entre eNB y MME)
-modprobe sctp
+## 4. Segmentos de Red
 
-# TUN (para interfaces virtuales del UE y PGW)
-modprobe tun
+| Segmento | Rango / dirección | Tecnología | Tráfico que transporta |
+|---|---|---|---|
+| Interfaz radio emulada | `127.0.0.1:2000` / `127.0.0.1:2001` | Sockets TCP (ZeroMQ) | Muestras I/Q entre srsUE y srsENB (equivalente lógico de la interfaz LTE-Uu) |
+| Túnel de datos del UE | `10.45.0.0/16` | Interfaz virtual `tun_srsue` | Tráfico IP de usuario una vez asignada la IP por el PGW |
+| Red bridge del laboratorio | `172.16.0.0/24` | Docker bridge | S1-MME, S1-U, S6a, Gx, SIP (Gm), Diameter Cx, RTP |
+| Túnel GTP-U | Interfaz virtual `ogstun` en el host | GTP-U | Plano de usuario encapsulado entre eNodeB y PGW (incluye el RTP de la llamada) |
 
-# Verificar
-lsmod | grep -E "sctp|tun"
+---
+
+## 5. Direccionamiento Fijo de Contenedores
+
+Reiterando el detalle ya introducido en `../02_herramientas/01_docker.md`, para facilitar la reproducibilidad de capturas y scripts de ataque, cada contenedor recibe una IP estática dentro de `172.16.0.0/24`:
+
+| Contenedor | IP | Capa | Herramienta |
+|---|---|---|---|
+| open5gs-mme | 172.16.0.10 | EPC | Open5GS |
+| open5gs-sgw | 172.16.0.11 | EPC | Open5GS |
+| open5gs-pgw | 172.16.0.12 | EPC | Open5GS |
+| open5gs-hss | 172.16.0.13 | EPC | Open5GS |
+| open5gs-pcrf | 172.16.0.14 | EPC | Open5GS |
+| kamailio-pcscf | 172.16.0.20 | IMS | Kamailio (P-CSCF) |
+| kamailio-scscf | 172.16.0.21 | IMS | Kamailio (S-CSCF) |
+| kamailio-icscf | 172.16.0.22 | IMS | Kamailio (I-CSCF) |
+| asterisk-mgcf | 172.16.0.23 | IMS / Media | Asterisk |
+| kali-attacker | 172.16.0.99 | Atacante | Kali Linux |
+
+Los procesos `srsenb`/`srsue` corren directamente sobre el host (no dentro de contenedores), comunicándose con el MME de Open5GS a través de la IP `172.16.0.10` publicada en la red bridge, típicamente mediante un puente adicional (`macvlan` o publicación de puertos) que permite que el proceso del host alcance la subred `172.16.0.0/24`.
+
+---
+
+## 6. Puntos de Posicionamiento del Atacante
+
+Cada vector de ataque asume una posición de red específica para el contenedor `kali-attacker`, coherente con el requisito de que el laboratorio nunca exponga tráfico fuera de la red bridge aislada:
+
+| Vector | Posición del atacante | Técnica de posicionamiento |
+|---|---|---|
+| V1 — MITM SIP | Entre srsUE y P-CSCF | ARP spoofing dentro de `172.16.0.0/24` |
+| V2 — DoS IMS | Cualquier punto con alcance al S-CSCF | Envío directo de tráfico (no requiere MITM) |
+| V3 — Suplantación | Cualquier punto con alcance al P-CSCF | Envío de INVITE forjado (Scapy) |
+| V4 — Cifrado radio | Acceso de lectura al log/captura de `srsenb` o a `ogstun` | Captura pasiva, sin necesidad de spoofing |
+| V5 — Rogue eNodeB | Segundo proceso `srsenb` con mayor prioridad de celda | Competencia de reselección de celda |
+| V6 — GTP-U Injection | Con visibilidad del túnel `ogstun` y el TEID de sesión | Inyección de paquetes GTP-U forjados |
+| V7 — SIP BYE forjado | Cualquier punto con alcance al S-CSCF | Envío de BYE sin autenticación de diálogo |
+
+---
+
+## 7. Correspondencia con Docker Compose
+
+La topología descrita se declara íntegramente en `docker-compose.yml`, que además de las IPs fijas define las dependencias de arranque (`depends_on`) para garantizar que el HSS y el MME estén operativos antes de intentar el primer Attach:
+
+```yaml
+services:
+  open5gs-hss:
+    networks:
+      volte-lab-net:
+        ipv4_address: 172.16.0.13
+
+  open5gs-mme:
+    depends_on: [open5gs-hss]
+    networks:
+      volte-lab-net:
+        ipv4_address: 172.16.0.10
+
+  kamailio-pcscf:
+    depends_on: [open5gs-mme]
+    networks:
+      volte-lab-net:
+        ipv4_address: 172.16.0.20
+
+  kali-attacker:
+    networks:
+      volte-lab-net:
+        ipv4_address: 172.16.0.99
 ```
 
 ---
 
-## 8. Recursos
+## 8. Diferencias Explícitas con una Red Real
 
+Esta topología reproduce fielmente el comportamiento de los planos de señalización y control, pero difiere deliberadamente de una red comercial en los siguientes puntos (ya introducidos en el README del repositorio, aquí con detalle de arquitectura):
+
+- **Sin RF física:** el segmento "radio" es en realidad un socket TCP en loopback, sin fading, interferencia ni movilidad real.
+- **Escala reducida:** 1-2 UE emulados frente a miles/millones de suscriptores concurrentes en producción.
+- **Sin interconexión externa:** no existe roaming ni señalización SS7/Diameter hacia otras redes; toda la topología vive dentro de una única red bridge.
+- **Terminales sin USIM certificada:** las credenciales del UE emulado se almacenan en texto plano en MongoDB, no en hardware inviolable.
+
+---
+
+## 9. Recursos
+
+- srsRAN 4G Project — https://github.com/srsran/srsRAN_4G
 - srsRAN con ZeroMQ: https://docs.srsran.com/projects/4g/en/latest/app_notes/source/zeromq/source/index.html
 - Open5GS Docker: https://github.com/gradiant/open5gs-docker
 - Diagrama de referencia 3GPP TS 23.002
+- Docker Compose networking — https://docs.docker.com/compose/networking/
+
+---
+
+**Siguiente documento:** [`02_flujo_llamada_volte.md`](02_flujo_llamada_volte.md) — Ciclo de vida de una llamada VoLTE.
+
+
+
+
+
