@@ -14,7 +14,7 @@ Este documento describe la arquitectura del IMS, el protocolo SIP como base de s
 
 El IMS es un subsistema definido por 3GPP (TS 23.228) para ofrecer servicios multimedia sobre IP, independiente del acceso radio subyacente. Sus elementos centrales son los **CSCF (Call Session Control Function)**:
 
-![Arquitectura VoLTE](../../Imagenes/arquitectura-IMS.png)
+![Arquitectura VoLTE](../../Imagenes/Arquitectura-IMS.png)
 
 ### Componentes del IMS
 
