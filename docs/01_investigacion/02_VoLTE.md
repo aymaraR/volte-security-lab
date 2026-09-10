@@ -2,32 +2,30 @@
 
 ## 1. ¿Qué es VoLTE?
 
-**VoLTE (Voice over LTE)** es la tecnología que permite realizar llamadas de voz directamente sobre la red de datos 4G LTE, sin necesitar caer a 2G/3G. Está definida por el estándar **3GPP IMS (IP Multimedia Subsystem)** y la especificación de la GSMA IR.92.
+LTE fue diseñado desde su origen como una red exclusivamente de conmutación de paquetes, sin un dominio de circuitos para voz como el de GSM/UMTS. Esto planteó a la industria el problema de cómo ofrecer servicio de voz sobre una red LTE pura. La solución estandarizada por el 3GPP y adoptada por la GSMA es **VoLTE (Voice over LTE)**, que transporta la voz como tráfico IP (RTP) sobre un bearer dedicado de LTE, con la señalización de la llamada gestionada por el **IMS (IP Multimedia Subsystem)**.
 
 Antes de VoLTE, los operadores usaban **CSFB (Circuit-Switched Fallback):** cuando entraba una llamada, el dispositivo "caía" a 2G/3G para manejarla. VoLTE elimina eso completamente.
+
+Este documento describe la arquitectura del IMS, el protocolo SIP como base de su señalización, y el ciclo de vida completo de una llamada VoLTE, estableciendo la base conceptual para el análisis de vulnerabilidades.
 
 ---
 
 ## 2. IMS — IP Multimedia Subsystem
 
-El IMS es la capa de señalización sobre la que corre VoLTE. Es una arquitectura estándar para servicios multimedia sobre IP.
+El IMS es un subsistema definido por 3GPP (TS 23.228) para ofrecer servicios multimedia sobre IP, independiente del acceso radio subyacente. Sus elementos centrales son los **CSCF (Call Session Control Function)**:
 
-```
-[ UE ] ←→ [ P-CSCF ] ←→ [ I-CSCF ] ←→ [ S-CSCF ] ←→ [ AS (Asterisk) ]
-                                                ↕
-                                             [ HSS ]
-```
+![Arquitectura VoLTE](../../Imagenes/arquitectura-IMS.png)
 
 ### Componentes del IMS
 
 | Nodo | Nombre | Función |
 |---|---|---|
-| **P-CSCF** | Proxy-CSCF | Primer punto de contacto SIP del UE. Gestiona seguridad IPSec. |
-| **I-CSCF** | Interrogating-CSCF | Consulta al HSS para encontrar el S-CSCF correcto. |
-| **S-CSCF** | Serving-CSCF | Registra usuarios, enruta sesiones SIP. Corazón del IMS. |
+| **P-CSCF** | Proxy-CSCF | Primer punto de contacto del UE con el IMS. Recibe toda la señalización SIP del terminal, aplica políticas de seguridad (IPSec/TLS) y reenvía al S-CSCF. |
+| **I-CSCF** | Interrogating-CSCF | Consulta al HSS para determinar qué S-CSCF debe atender a un usuario. |
+| **S-CSCF** | Serving-CSCF | Núcleo de control de sesión. Autentica al usuario, mantiene el estado del registro, aplica lógica de servicio (routing de llamadas, filtros) y es el elemento más crítico de todo el IMS. |
 | **AS** | Application Server | Lógica de servicios: buzón de voz, conferencia, etc. |
 | **HSS** | Home Subscriber Server | Base de datos de suscriptores (compartida con EPC). |
-| **MGCF** | Media Gateway Control Function | Interconexión con redes PSTN (telefonía tradicional). |
+| **MGCF** | Media Gateway Control Function | Interconecta el plano de medios IMS con otras redes (PSTN, otros operadores) y gestiona el establecimiento del flujo RTP. |
 
 ---
 
@@ -134,6 +132,14 @@ LTE usa el concepto de **bearers** (portadoras) para garantizar calidad de servi
 - GSMA IR.92 — IMS Profile for Voice and SMS
 - 3GPP TS 23.228 — IP Multimedia Subsystem (IMS); Stage 2
 - 3GPP TS 24.229 — IP multimedia call control protocol based on SIP and SDP
+- 3GPP TS 33.203 — 3G Security; Access security for IP-based services.
 - RFC 3261 — SIP: Session Initiation Protocol
 - RFC 3550 — RTP: A Transport Protocol for Real-Time Applications
 - RFC 3711 — The Secure Real-time Transport Protocol (SRTP)
+- RFC 3325 — Private Extensions to SIP for Asserted Identity.
+- RFC 5630 — The Use of the SDES Key Management Method with SIP.
+
+
+---
+
+**Siguiente documento:** [`03_vectores_ataque.md`](03_vectores_ataque.md) — Superficie de ataque y vulnerabilidades.
