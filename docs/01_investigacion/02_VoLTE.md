@@ -36,8 +36,16 @@ VoLTE combina tres protocolos clave:
 ### 3.1 SIP — Session Initiation Protocol
 - RFC 3261
 - Protocolo de señalización para establecer, modificar y terminar sesiones multimedia.
-- Maneja: REGISTER, INVITE, ACK, BYE, CANCEL, etc.
 - Funciona sobre UDP o TCP (en IMS generalmente TCP o TLS).
+
+     | Método | Función |
+     |---|---|
+     | `REGISTER` | Registro del UE ante el S-CSCF (vincula la identidad IMPU con la ubicación de contacto) |
+     | `INVITE` | Inicio de una sesión (llamada), incluye el **SDP** (Session Description Protocol) con IP/puerto de media y codecs propuestos |
+     | `ACK` | Confirma la respuesta final a un INVITE |
+     | `BYE` | Termina una sesión activa |
+     | `CANCEL` | Cancela un INVITE aún no respondido |
+     | `200 OK` / `180 Ringing` / `486 Busy` / `403 Forbidden` | Respuestas de estado |
 
 ### 3.2 SDP — Session Description Protocol
 - RFC 4566
@@ -78,7 +86,13 @@ Llamante (UE-A)                IMS (Kamailio)         Llamado (UE-B)
 
 ## 5. QoS en VoLTE — Bearers y QCI
 
-LTE usa el concepto de **bearers** (portadoras) para garantizar calidad de servicio. VoLTE requiere bearers dedicados:
+Una vez registrado, cuando el UE inicia una llamada, la red debe garantizar una calidad de servicio adecuada para el tráfico de voz en tiempo real. Esto se logra mediante:
+
+     1. El P-CSCF, al observar el SDP negociado en el INVITE, informa al **PCRF** (vía la interfaz Rx) los parámetros de la sesión de media.
+     2. El PCRF traduce esto en una regla PCC (Policy and Charging Control) que se entrega al PGW (interfaz Gx).
+     3. El PGW, junto al SGW y el eNodeB, establece un **Dedicated Bearer** con **QCI=1** (conversacional, prioridad de scheduling alta, retardo objetivo ~100 ms, tasa de pérdida de paquetes objetivo 10⁻²).
+
+Este *bearer* (portadoras) dedicado es el que transporta el tráfico RTP durante toda la llamada, separado del Default Bearer usado para datos generales (navegación, señalización SIP).
 
 | Bearer | QCI | Uso | Características |
 |---|---|---|---|
@@ -91,26 +105,13 @@ LTE usa el concepto de **bearers** (portadoras) para garantizar calidad de servi
 
 ---
 
-## 6. Seguridad en VoLTE
+## 6. Superficies de Riesgo Introducidas por VoLTE
 
-### 6.1 Señalización SIP
-- **IPSec ESP:** entre UE y P-CSCF (obligatorio en IMS). Protege la señalización SIP en la capa de transporte.
-- **TLS:** alternativa para señalización SIP.
+La incorporación del IMS añade una capa de señalización adicional (SIP/Diameter) y un plano de media (RTP) que no existían en LTE puro, ampliando la superficie de ataque respecto de una red LTE de solo datos:
 
-### 6.2 Medios RTP
-- **SRTP (Secure RTP):** RFC 3711. Cifra el flujo de audio.
-- **SDES (SDP Security Descriptions):** intercambio de claves SRTP mediante SDP. Vulnerable a ataques MITM si no hay TLS/IPSec en la señalización.
-- **DTLS-SRTP:** alternativa más robusta (usado en WebRTC).
-
-### 6.3 Vulnerabilidades documentadas
-
-| Vulnerabilidad | Descripción |
-|---|---|
-| **SRTP con SDES sin TLS** | Las claves de cifrado RTP viajan en SDP en texto claro si no hay TLS/IPSec. |
-| **Falta de SRTP** | Algunas implementaciones IMS no habilitan SRTP, dejando el audio en texto claro (RTP plano). |
-| **SIP INVITE sin autenticación** | En entornos mal configurados, se puede generar sesiones sin autenticarse. |
-| **RTP injection** | Sin SRTP/SRTCP, un atacante en la red puede inyectar paquetes de audio. |
-| **RTCP hijacking** | RTCP no cifrado puede revelar metadatos y estadísticas de la llamada. |
+- **Plano de señalización SIP**: expuesto a interceptación, DoS por inundación de mensajes, y manipulación de identidad si no se validan correctamente los headers de autenticación.
+- **Plano de media RTP**: expuesto a interceptación si la sesión SIP revela IP/puerto de forma clara y el cifrado radio (EEA) está deshabilitado o es débil.
+- **Interfaces Diameter (Cx, Rx, Gx)**: interfaces internas normalmente no expuestas a un atacante externo, pero relevantes si el atacante logra posicionarse dentro de la red del operador (escenario que el laboratorio emula mediante acceso a la red bridge de Docker).
 
 ---
 
