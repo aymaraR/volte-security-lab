@@ -1,7 +1,6 @@
-# Vectores de Ataque — Superficie de Seguridad VoLTE
+# ⚔️ Vectores de Ataque - Implementar y ejecutar
 
-> Documento de investigación teórica — Fase 1 del proyecto de tesis
-> Laboratorio de seguridad VoLTE sobre redes 4G/LTE
+> ⚠️ **Propósito estrictamente académico.** Esta documentación analiza vulnerabilidades conocidas y publicadas en la literatura de seguridad. No se provee código malicioso ni instrucciones de ataque sobre redes reales.
 
 ---
 
@@ -24,96 +23,69 @@ Los procedimientos técnicos detallados (comandos, scripts, métricas de éxito)
 
 ---
 
-## 3. Resumen de los Siete Vectores de Ataque
+## Criterio de selección
 
-| # | Vector | Capa | Criticidad (CVSS 3.1) | MITRE ATT&CK |
-|---|---|---|---|---|
-| V1 | Interceptación de señalización SIP/SDP | Señalización | 9.1 (Crítica) | T1557 — AiTM |
-| V2 | Denegación de servicio sobre el IMS | Señalización | 8.6 (Crítica) | T1498 — Network DoS |
-| V3 | Suplantación de identidad (User Impersonation) | Señalización | 7.4 (Alta) | T1534 — Internal Spearphishing |
-| V4 | Robustez del cifrado radio (EEA0 vs EEA2) | Radio | 7.5 (Alta) | T1040 — Network Sniffing |
-| V5 | Rogue eNodeB | Radio | Extendido | — |
-| V6 | Inyección en el túnel GTP-U | Core | Extendido | — |
-| V7 | SIP BYE forjado (terminación forzada) | Señalización | Extendido | — |
-
-Los cuatro primeros (V1-V4) son obligatorios para la tesis; V5-V7 se documentan como contribución extendida.
+Los 7 vectores se seleccionaron porque:
+1. Son reproducibles sin hardware SDR ni terminales físicos (compatibles con el modo ZMQ).
+2. Cubren los tres planos principales del sistema: señalización IMS/SIP, cifrado de radio y plano de datos GTP-U.
+3. Están priorizados por severidad CVSS 3.1 y mapeados a MITRE ATT&CK for Mobile.
+4. Los 4 primeros (V1–V4) son obligatorios para la tesis; V5–V7 son contribución extendida (opcional según tiempo disponible, ver cronograma).
 
 ---
 
-## 4. V1 — Interceptación de Señalización SIP/SDP
+## Vectores obligatorios
 
-**Causa raíz:** el Gm (interfaz UE↔P-CSCF) puede operar sin TLS obligatorio ni IPSec-IKEv2 correctamente forzado, permitiendo que el tráfico SIP viaje en texto claro dentro de la red de acceso.
+### V1 — Intercepción de Señalización SIP/SDP
+- **Criticidad:** CRÍTICA (CVSS 9.1) — MITRE ATT&CK T1557 (Adversary-in-the-Middle)
+- **Objetivo:** Capturar el SDP en claro (IP de media, puerto RTP, códec) cuando el P-CSCF no fuerza TLS.
+- **Herramientas:** ARP spoofing (arpspoof) desde el contenedor Kali, Wireshark (filtro `sip || rtp`), rtpbreak para reconstruir el audio.
+- **Contramedida a validar:** `tls_required=yes` en Kamailio; se espera tráfico TLSv1.3 ilegible tras aplicarla.
 
-**Impacto:** un atacante posicionado en la misma red (ARP spoofing) puede leer el `INVITE`/SDP completo, obteniendo IP y puerto de media y el codec negociado — información suficiente para localizar y potencialmente reconstruir el flujo RTP de la llamada (con herramientas como `rtpbreak`).
+### V2 — Denegación de Servicio sobre el IMS
+- **Criticidad:** CRÍTICA (CVSS 8.6) — MITRE ATT&CK T1498 (Network DoS)
+- **Sub-escenario 2a (REGISTER Flood):** ráfagas de REGISTER con credenciales distintas (inviteflood, SIPp) agotan la tabla de diálogos del S-CSCF.
+- **Sub-escenario 2b (Transaction Exhaustion):** INVITEs sin ACK/BYE mantienen transacciones en TRYING hasta expirar el timer B (32 s).
+- **Métrica de éxito:** un REGISTER legítimo recibe 503 o no responde en 5 s.
+- **Contramedida a validar:** rate limiting con el módulo `pike` de Kamailio.
 
-**Contramedida:** forzar TLS en el P-CSCF (`tls_required=yes` en Kamailio). Referencia normativa: RFC 5630.
+### V3 — Suplantación de Identidad (User Impersonation)
+- **Criticidad:** ALTA (CVSS 7.4) — MITRE ATT&CK T1534 (Internal Spearphishing)
+- **Objetivo:** Iniciar una llamada apareciendo como otro usuario registrado, forjando el header `From` con Scapy.
+- **Contramedida a validar:** verificación de P-Asserted-Identity contra el registro autenticado; se espera un 403 Forbidden si no coincide.
 
-**Procedimiento detallado:** ver propuesta de tesis, sección 3.1, y script `attacks/v1_mitm_sip.py`.
-
----
-
-## 5. V2 — Denegación de Servicio sobre el IMS
-
-**Causa raíz:** el S-CSCF procesa cada transacción SIP manteniendo estado en memoria (tabla de diálogos, máquina de estados de transacción). Sin límites de tasa, este estado es agotable.
-
-**Sub-escenarios:**
-- **2a — REGISTER Flood:** ráfagas de `REGISTER` con credenciales distintas agotan la tabla de diálogos y la capacidad de autenticación AKA.
-- **2b — Transaction Exhaustion:** `INVITE` sin `ACK`/`BYE` mantiene transacciones en estado `TRYING` hasta que expira el Timer B (32 s de la máquina de estados SIP, RFC 3261), agotando memoria con transacciones colgadas.
-
-**Métrica de éxito:** un `REGISTER` legítimo recibe `503 Service Unavailable` o no obtiene respuesta en 5 segundos.
-
-**Contramedida:** rate limiting con el módulo `pike` de Kamailio, limitando la tasa de solicitudes por origen.
-
-**Procedimiento detallado:** ver propuesta de tesis, sección 3.2.
-
----
-
-## 6. V3 — Suplantación de Identidad (User Impersonation)
-
-**Causa raíz:** si el S-CSCF no valida el header `P-Asserted-Identity` (RFC 3325) contra la identidad autenticada en el registro (IMPI/IMPU verificado en el HSS), el campo `From` de un `INVITE` puede forjarse libremente.
-
-**Impacto:** un atacante puede iniciar una llamada haciéndose pasar por otro usuario legítimo del IMS, habilitando escenarios de fraude, ingeniería social o suplantación en investigaciones internas.
-
-**Contramedida:** habilitar en Kamailio la verificación de `P-Asserted-Identity` contra el registro autenticado, rechazando con `403 Forbidden` cualquier discrepancia.
-
-**Procedimiento detallado:** ver propuesta de tesis, sección 3.3, y script `attacks/v3_identity_spoof.py` (Scapy).
+### V4 — Análisis de Robustez del Cifrado Radio
+- **Criticidad:** ALTA (CVSS 7.5) — MITRE ATT&CK T1040 (Network Sniffing)
+- **Objetivo:** Demostrar que EEA0 (sin cifrado) expone el tráfico RTP en claro, en contraste con EEA2 (AES-CTR 128 bits).
+- **Procedimiento:** captura con tcpdump en la interfaz `ogstun`, análisis en Wireshark con filtro `rtp`.
+- **Comparación:** payload legible/reconstruible (EEA0) vs. payload cifrado ininteligible (EEA2).
 
 ---
 
-## 7. V4 — Robustez del Cifrado Radio
+## Vectores extendidos (contribución adicional, si el tiempo lo permite)
 
-**Causa raíz:** el algoritmo de cifrado de la capa PDCP (`EEA0`, sin cifrado) puede quedar configurado por error o debilidad administrativa en el eNodeB, dejando expuesto todo el tráfico de la interfaz radio, incluido el RTP de una llamada VoLTE.
+### V5 — Rogue eNodeB
+- Segundo srsENB con mayor prioridad de celda (`dl_earfcn`) atrae al srsUE, demostrando ataque de celda falsa sin necesidad de SDR físico.
 
-**Impacto:** cualquier interceptor con acceso a la interfaz radio (o, en el laboratorio, al log/captura del `ogstun`) puede reconstruir el audio de la llamada sin necesidad de comprometer la señalización SIP.
+### V6 — GTP-U Injection
+- Inyección de paquetes en el túnel GTP-U del S/PGW usando Scapy con un TEID conocido, alterando el tráfico de datos del usuario.
 
-**Contramedida:** forzar `EEA2` (AES-CTR de 128 bits) en la configuración de seguridad del eNodeB.
-
-**Procedimiento detallado:** ver propuesta de tesis, sección 3.4.
+### V7 — SIP BYE Forjado
+- Terminación forzada de una llamada activa mediante un BYE sin autenticación de diálogo, explotando la ausencia de verificación de tags From/To.
 
 ---
 
-## 8. Vectores Extendidos (V5–V7)
+## Ciclo metodológico aplicado a cada vector (4 fases)
 
-| Vector | Descripción conceptual | Capa |
+| Fase | Actividad | Duración estimada |
 |---|---|---|
-| **V5 — Rogue eNodeB** | Un segundo eNodeB con mayor prioridad de celda (parámetro de reselección) atrae al UE, ilustrando el principio de un ataque de celda falsa sin necesidad de hardware SDR | Radio |
-| **V6 — GTP-U Injection** | Inyección de paquetes en el túnel GTP-U del S/PGW conociendo el TEID de la sesión, alterando el tráfico de datos del usuario | Core |
-| **V7 — SIP BYE Forjado** | Terminación forzada de una llamada activa mediante un `BYE` sin verificación de los tags `From`/`To` del diálogo, explotando la ausencia de autenticación de diálogo | Señalización |
+| 1. Reconocimiento pasivo | Captura baseline del tráfico normal; identificación de puertos, protocolos y patrones. | 30 min |
+| 2. Análisis de configuración | Revisión de archivos de configuración del EPC e IMS en busca de parámetros inseguros. | 45 min |
+| 3. Explotación activa | Ejecución del ataque con las herramientas definidas; captura de evidencia y logs. | 60–90 min |
+| 4. Validación de contramedida | Aplicación de la mitigación; re-ejecución del ataque para verificar efectividad. | 45 min |
 
 ---
 
-## 9. Metodología de Evaluación (resumen)
-
-Cada vector se ejecuta siguiendo el mismo ciclo de cuatro fases, detallado con tiempos estimados en la propuesta de tesis:
-
-1. **Reconocimiento pasivo** — captura de tráfico baseline.
-2. **Análisis de configuración** — revisión de archivos de configuración del EPC/IMS en busca de parámetros inseguros.
-3. **Explotación activa** — ejecución del ataque, captura de evidencia (`.pcapng`, logs).
-4. **Validación de contramedida** — aplicación de la mitigación y reejecución del ataque para confirmar su efectividad.
-
----
-
-## 10. Referencias
+## Referencias
 
 - MITRE ATT&CK for Mobile — https://attack.mitre.org/matrices/mobile/
 - 3GPP TS 33.203 / TS 33.401 — Seguridad de acceso IMS y arquitectura de seguridad SAE.
