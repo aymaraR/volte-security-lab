@@ -69,7 +69,8 @@ Estas diferencias son la razón por la que el desafío original propone, como ev
 │   │
 │   └── 📁 03_arquitectura/
 │       ├── 01_diagrama_laboratorio.md  ← Topología del entorno
-│       └── 02_flujo_llamada_volte.md   ← Ciclo de vida de una llamada VoLTE
+│       ├── 02_flujo_llamada_volte.md   ← Ciclo de vida de una llamada VoLTE
+│       └── 03_ataques_a_implementar.md ← Ataques que realizaremos 
 │
 ├── 📁 Imagenes/
 │
