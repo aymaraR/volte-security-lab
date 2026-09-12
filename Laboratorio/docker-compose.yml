@@ -1,0 +1,224 @@
+networks:
+  volte-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+
+  mongodb:
+    image: mongo:4.4
+    container_name: mongodb
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.2
+    volumes:
+      - mongodb_data:/data/db
+
+  open5gs:
+    image: open5gs-local:latest
+    container_name: open5gs
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv4.ip_forward=1
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.3
+    environment:
+      - DB_URI=mongodb://172.20.0.2/open5gs
+    depends_on:
+      - mongodb
+    ports:
+      - "3000:3000"
+    volumes:
+      - ~/voLTE-lab/open5gs-config/nrf.yaml:/etc/open5gs/nrf.yaml
+      - ~/voLTE-lab/open5gs-config/mme.yaml:/etc/open5gs/mme.yaml
+      - ~/voLTE-lab/open5gs-config/mme.conf:/etc/freeDiameter/mme.conf
+    command: >
+      bash -c "
+        open5gs-nrfd &
+        sleep 2 &&
+        open5gs-mmed &
+        open5gs-sgwcd &
+        open5gs-sgwud &
+        open5gs-smfd &
+        open5gs-amfd &
+        open5gs-hssd &
+        open5gs-pcrfd &
+        open5gs-upfd &
+        wait
+      "
+  webui:
+    build:
+      context: ./open5gs-webui
+    container_name: webui
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.13
+    environment:
+      - DB_URI=mongodb://172.20.0.2/open5gs
+      - PORT=3000
+    depends_on:
+      - mongodb
+    ports:
+      - "3000:3000"
+    volumes:
+      - ~/voLTE-lab/open5gs-webui/webui.env:/open5gs/webui/.env
+
+  kamailio:
+    image: kamailio-ims:latest
+    container_name: kamailio
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.6
+    ports:
+      - "5060:5060/udp"
+      - "5060:5060/tcp"
+    volumes:
+      - ~/voLTE-lab/kamailio/scscf/scscf.cfg:/usr/local/etc/kamailio/scscf.cfg
+      - ~/voLTE-lab/kamailio/icscf/icscf.cfg:/usr/local/etc/kamailio/icscf.cfg
+      - ~/voLTE-lab/kamailio/pcscf/pcscf.cfg:/usr/local/etc/kamailio/pcscf.cfg
+      - ~/voLTE-lab/kamailio/scscf/scscf_diameter.xml:/usr/local/etc/kamailio/scscf_diameter.xml
+      - ~/voLTE-lab/kamailio/icscf/icscf_diameter.xml:/usr/local/etc/kamailio/icscf_diameter.xml
+    extra_hosts:
+      - "hss.ims.mnc070.mcc999.3gppnetwork.org:172.20.0.12"
+    command: >
+      bash -c "
+        kamailio -DD -E -e -f /usr/local/etc/kamailio/scscf.cfg &
+        sleep 1 &&
+        kamailio -DD -E -e -f /usr/local/etc/kamailio/icscf.cfg &
+        kamailio -DD -E -e -f /usr/local/etc/kamailio/pcscf.cfg &
+        wait
+      "
+
+  asterisk:
+    image: asterisk-ims:latest
+    container_name: asterisk
+    privileged: true
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.7
+    ports:
+      - "5061:5061/udp"
+      - "10000-10100:10000-10100/udp"
+    volumes:
+      - ~/voLTE-lab/asterisk/pjsip.conf:/etc/asterisk/pjsip.conf
+      - ~/voLTE-lab/asterisk/extensions.conf:/etc/asterisk/extensions.conf
+    command: bash -c "asterisk -f"
+
+  enb:
+    image: srsran-zmq:latest
+    container_name: srsenb
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.4
+    depends_on:
+      - open5gs
+    volumes:
+      - ~/voLTE-lab/srsran/enb-config:/root/enb-config
+    command: bash -c "sleep infinity"
+
+  ue:
+    image: srsran-zmq:latest
+    container_name: srsue
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.5
+    depends_on:
+      - enb
+    volumes:
+      - ~/voLTE-lab/srsran/ue-config:/root/ue-config
+    command: bash -c "sleep infinity"
+  redis:
+    image: "redis:7.0-alpine"
+    container_name: redis
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.9
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  pyhss_hss:
+    image: ghcr.io/nickvsnetworking/pyhss/pyhss:development
+    build:
+      context: ./pyhss
+      dockerfile: docker/Dockerfile
+    container_name: pyhss_hss
+    env_file:
+      - ./pyhss/docker/.env
+    environment:
+      CONTAINER_ROLE: "hss"
+      HSS_ORIGIN_HOST: "hss.ims.mnc070.mcc999.3gppnetwork.org"
+      HSS_ORIGIN_REALM: "ims.mnc070.mcc999.3gppnetwork.org"
+      HSS_MCC: "999"
+      HSS_MNC: "070"
+      HSS_SCSCF_POOL: "scscf.ims.mnc070.mcc999.3gppnetwork.org"
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.10
+    volumes:
+      - pyhss_sqlite:/var/lib/pyhss
+    depends_on:
+      - redis
+
+  pyhss_api:
+    image: ghcr.io/nickvsnetworking/pyhss/pyhss:development
+    container_name: pyhss_api
+    env_file:
+      - ./pyhss/docker/.env
+    environment:
+      CONTAINER_ROLE: "api"
+      HSS_ORIGIN_HOST: "hss.ims.mnc070.mcc999.3gppnetwork.org"
+      HSS_ORIGIN_REALM: "ims.mnc070.mcc999.3gppnetwork.org"
+      HSS_MCC: "999"
+      HSS_MNC: "070"
+      HSS_SCSCF_POOL: "scscf.ims.mnc070.mcc999.3gppnetwork.org"
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.11
+    ports:
+      - "8080:8080"
+    volumes:
+      - pyhss_sqlite:/var/lib/pyhss
+    depends_on:
+      - pyhss_hss
+
+  pyhss_diameter:
+    image: ghcr.io/nickvsnetworking/pyhss/pyhss:development
+    container_name: pyhss_diameter
+    env_file:
+      - ./pyhss/docker/.env
+    environment:
+      CONTAINER_ROLE: "diameter"
+      LOGGING_LEVEL: "DEBUG"
+      HSS_ORIGIN_HOST: "hss.ims.mnc070.mcc999.3gppnetwork.org"
+      HSS_ORIGIN_REALM: "ims.mnc070.mcc999.3gppnetwork.org"
+      HSS_MCC: "999"
+      HSS_MNC: "070"
+      HSS_SCSCF_POOL: "scscf.ims.mnc070.mcc999.3gppnetwork.org"
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.12
+    ports:
+      - "3868:3868/tcp"
+    volumes:
+      - pyhss_sqlite:/var/lib/pyhss
+    depends_on:
+      - pyhss_api
+volumes:
+  mongodb_data:
+  redis_data:
+  pyhss_sqlite:
