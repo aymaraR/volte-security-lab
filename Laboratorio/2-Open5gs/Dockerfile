@@ -8,19 +8,17 @@ RUN apt-get update && apt-get install -y \
     cmake libsctp-dev libgnutls28-dev libgcrypt-dev \
     libssl-dev libidn11-dev libmongoc-dev libbson-dev \
     libyaml-dev libnghttp2-dev libmicrohttpd-dev \
-    libcurl4-gnutls-dev libnghttp2-dev libtins-dev \
-    libtalloc-dev meson curl wget iproute2 \
+    libcurl4-gnutls-dev libtins-dev libtalloc-dev \
+    meson iproute2 iputils-ping net-tools \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar mongo-c-driver actualizado
-RUN pip3 install meson
-
-COPY --from=open5gs-src /open5gs /open5gs
-
-RUN cd /open5gs && \
+RUN git clone https://github.com/open5gs/open5gs.git /open5gs && \
+    cd /open5gs && \
     meson build --prefix=/usr && \
     ninja -C build && \
     ninja -C build install
+
+EXPOSE 3000
 
 WORKDIR /open5gs
 
