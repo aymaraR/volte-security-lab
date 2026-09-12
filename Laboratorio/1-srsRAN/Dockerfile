@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libzmq3-dev \
     python3 python3-pip \
     iproute2 iputils-ping net-tools \
+    baresip-core \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/srsran/srsRAN_4G.git /srsran && \
