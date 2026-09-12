@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DiameterPeer
+    FQDN="icscf.ims.mnc070.mcc999.3gppnetwork.org"
+    Realm="ims.mnc070.mcc999.3gppnetwork.org"
+    Vendor_Id="10415"
+    Product_Name="CDiameter"
+    AcceptUnknownPeers="1"
+    DropUnknownOnDisconnect="1"
+    Tc="30"
+    Workers="4"
+    QueueLength="32"
+>
+    <Peer
+        FQDN="hss.ims.mnc070.mcc999.3gppnetwork.org"
+        Realm="ims.mnc070.mcc999.3gppnetwork.org"
+        port="3868"
+    />
+
+    <Listener
+        port="3870"
+        bind="172.20.0.6"
+    />
+
+    <DefaultRoute FQDN="hss.ims.mnc070.mcc999.3gppnetwork.org" metric="10"/>
+
+    <Application id="16777216" vendor="10415" type="auth"/>
+</DiameterPeer>
