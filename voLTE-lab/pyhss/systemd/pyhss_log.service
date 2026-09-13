@@ -1,0 +1,15 @@
+# Optional service for writing to log files. Consider reading logs through
+# journalctl instead.
+[Unit]
+Description=PyHSS Log Service
+PartOf=pyhss.service
+
+[Service]
+Environment="PYTHONUNBUFFERED=1"
+User=root
+WorkingDirectory=/etc/pyhss/services/
+ExecStart=python3 logService.py
+Restart=always
+
+[Install]
+WantedBy=pyhss.service

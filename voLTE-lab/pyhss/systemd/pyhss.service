@@ -1,0 +1,20 @@
+# Legacy meta-service with possibly outdated assumptions on which database
+# (mysql, default is now sqlite and postgres is also supported) and services
+# (log and geored are typically not needed) are being used. Consider running
+# individual services that you actually want to have in your setup instead.
+[Unit]
+Description=PyHSS
+After=network-online.target mysql.service
+Wants=pyhss_diameter.service
+Wants=pyhss_geored.service
+Wants=pyhss_hss.service
+Wants=pyhss_log.service
+Wants=pyhss_metric.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
