@@ -32,7 +32,7 @@ services:
     depends_on:
       - mongodb
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
       - ~/voLTE-lab/open5gs-config/nrf.yaml:/etc/open5gs/nrf.yaml
       - ~/voLTE-lab/open5gs-config/mme.yaml:/etc/open5gs/mme.yaml
@@ -140,6 +140,7 @@ services:
       - enb
     volumes:
       - ~/voLTE-lab/srsran/ue-config:/root/ue-config
+      - ~/voLTE-lab/srsran/baresip-config:/root/.baresip
     command: bash -c "sleep infinity"
   redis:
     image: "redis:7.0-alpine"
@@ -218,6 +219,18 @@ services:
       - pyhss_sqlite:/var/lib/pyhss
     depends_on:
       - pyhss_api
+
+  sniffer:
+    image: nicolaka/netshoot
+    container_name: sniffer
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - ~/voLTE-lab/captures:/captures
+    command: bash -c "sleep infinity"
+
 volumes:
   mongodb_data:
   redis_data:
