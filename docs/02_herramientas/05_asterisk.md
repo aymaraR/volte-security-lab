@@ -1,4 +1,4 @@
-# 🔊 Herramienta: Asterisk
+# Herramienta: Asterisk
 
 ## 1. ¿Qué es Asterisk?
 
@@ -42,6 +42,8 @@ Asterisk actúa como **B2BUA (Back-to-Back User Agent):** termina la sesión SIP
 ---
 
 ## 4. Configuración — pjsip.conf (stack SIP moderno)
+
+> Nota de vigencia (2026-10-02): ejemplo ilustrativo. La config real está en `voLTE-lab/asterisk/pjsip.conf` (bind `0.0.0.0:5061`, registro `scscf-reg` contra S-CSCF `172.20.0.6:6060`, endpoint `ue-endpoint` para las líneas 1001/1002, echo 1000 en `extensions.conf`).
 
 ```ini
 ; pjsip.conf — configuración para laboratorio VoLTE

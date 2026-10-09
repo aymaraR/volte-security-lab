@@ -1,6 +1,6 @@
-# ⚔️ Vulnerabilidades: Vectores de Ataque en Redes 4G LTE / VoLTE
+# Vulnerabilidades: Vectores de Ataque en Redes 4G LTE / VoLTE
 
-> ⚠️ **Propósito estrictamente académico.** Esta documentación analiza vulnerabilidades conocidas y publicadas en la literatura de seguridad. No se provee código malicioso ni instrucciones de ataque sobre redes reales.
+> **Propósito estrictamente académico.** Esta documentación analiza vulnerabilidades conocidas y publicadas en la literatura de seguridad. No se provee código malicioso ni instrucciones de ataque sobre redes reales.
 
 ---
 
@@ -88,7 +88,21 @@
 
 ---
 
-## 8. Referencias Académicas
+## 8. Validación en el laboratorio (2026-10-02)
+
+Estado de cada familia frente al laboratorio `voLTE-lab` (detalle y evidencias con hash en `voLTE-lab/kali.md` y `voLTE-lab/results/`):
+
+| Familia teórica | Vector del lab | Resultado |
+|---|---|---|
+| Intercepción SIP/SDP, ataques sobre RTP | V1 | Vulnerable (SDP en claro, audio reconstruido) |
+| REGISTER/INVITE Flood, transaction exhaustion | V2 | Degradación real solo en REGISTER flood contra S-CSCF |
+| P-Asserted-Identity spoofing | V3 | Vulnerable (sin 403) |
+| Cifrado nulo EEA0 | V4 | Bloqueado (plano GTP inestable, sin tráfico que capturar) |
+| Rogue eNodeB / fake base station | V5 | Ejecutado, UE no atraído en ventana de observación |
+| GTP-U injection | V6 | Bloqueado (sin TEID válido) |
+| SIP BYE/CANCEL forjado | V7 | Vulnerable (BYE con RURI del contacto remoto termina la llamada `1->0`) |
+
+## 9. Referencias Académicas
 
 - 3GPP TS 33.401 — SAE Security Architecture.
 - 3GPP TS 33.203 — Access security for IP-based services (IMS).

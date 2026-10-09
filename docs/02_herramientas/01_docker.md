@@ -1,4 +1,4 @@
-# 🐳 Herramienta: Docker
+# Herramienta: Docker
 
 ## 1. ¿Qué es Docker?
 
@@ -31,6 +31,8 @@ En este proyecto, Docker permite:
 ---
 
 ## 4. Docker Compose — Estructura Básica
+
+> Nota de vigencia (2026-10-02): el ejemplo siguiente es ilustrativo con dos redes. La topología real usa una sola red bridge `volte-net` (`172.20.0.0/24`) con IPs fijas por servicio (ver `voLTE-lab/docker-compose.yml` y `docs/03_arquitectura/01_diagrama_laboratorio.md`). El levantado no es `docker compose up -d` a secas sino `./lab-up.sh` (13 pasos ordenados con healthchecks).
 
 ```yaml
 # docker-compose.yml

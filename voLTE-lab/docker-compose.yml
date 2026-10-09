@@ -34,9 +34,9 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ~/voLTE-lab/open5gs-config/nrf.yaml:/etc/open5gs/nrf.yaml
-      - ~/voLTE-lab/open5gs-config/mme.yaml:/etc/open5gs/mme.yaml
-      - ~/voLTE-lab/open5gs-config/mme.conf:/etc/freeDiameter/mme.conf
+      - ./open5gs-config/nrf.yaml:/etc/open5gs/nrf.yaml
+      - ./open5gs-config/mme.yaml:/etc/open5gs/mme.yaml
+      - ./open5gs-config/mme.conf:/etc/freeDiameter/mme.conf
     command: >
       bash -c "
         open5gs-nrfd &
@@ -66,7 +66,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ~/voLTE-lab/open5gs-webui/webui.env:/open5gs/webui/.env
+      - ./open5gs-webui/webui.env:/open5gs/webui/.env
 
   kamailio:
     image: kamailio-ims:latest
@@ -81,11 +81,11 @@ services:
       - "5060:5060/udp"
       - "5060:5060/tcp"
     volumes:
-      - ~/voLTE-lab/kamailio/scscf/scscf.cfg:/usr/local/etc/kamailio/scscf.cfg
-      - ~/voLTE-lab/kamailio/icscf/icscf.cfg:/usr/local/etc/kamailio/icscf.cfg
-      - ~/voLTE-lab/kamailio/pcscf/pcscf.cfg:/usr/local/etc/kamailio/pcscf.cfg
-      - ~/voLTE-lab/kamailio/scscf/scscf_diameter.xml:/usr/local/etc/kamailio/scscf_diameter.xml
-      - ~/voLTE-lab/kamailio/icscf/icscf_diameter.xml:/usr/local/etc/kamailio/icscf_diameter.xml
+      - ./kamailio/scscf/scscf.cfg:/usr/local/etc/kamailio/scscf.cfg
+      - ./kamailio/icscf/icscf.cfg:/usr/local/etc/kamailio/icscf.cfg
+      - ./kamailio/pcscf/pcscf.cfg:/usr/local/etc/kamailio/pcscf.cfg
+      - ./kamailio/scscf/scscf_diameter.xml:/usr/local/etc/kamailio/scscf_diameter.xml
+      - ./kamailio/icscf/icscf_diameter.xml:/usr/local/etc/kamailio/icscf_diameter.xml
     extra_hosts:
       - "hss.ims.mnc070.mcc999.3gppnetwork.org:172.20.0.12"
     command: >
@@ -108,8 +108,8 @@ services:
       - "5061:5061/udp"
       - "10000-10100:10000-10100/udp"
     volumes:
-      - ~/voLTE-lab/asterisk/pjsip.conf:/etc/asterisk/pjsip.conf
-      - ~/voLTE-lab/asterisk/extensions.conf:/etc/asterisk/extensions.conf
+      - ./asterisk/pjsip.conf:/etc/asterisk/pjsip.conf
+      - ./asterisk/extensions.conf:/etc/asterisk/extensions.conf
     command: bash -c "asterisk -f"
 
   enb:
@@ -124,7 +124,7 @@ services:
     depends_on:
       - open5gs
     volumes:
-      - ~/voLTE-lab/srsran/enb-config:/root/enb-config
+      - ./srsran/enb-config:/root/enb-config
     command: bash -c "sleep infinity"
 
   ue:
@@ -139,8 +139,8 @@ services:
     depends_on:
       - enb
     volumes:
-      - ~/voLTE-lab/srsran/ue-config:/root/ue-config
-      - ~/voLTE-lab/srsran/baresip-config:/root/.baresip
+      - ./srsran/ue-config:/root/ue-config
+      - ./srsran/baresip-config:/root/.baresip
     command: bash -c "sleep infinity"
   redis:
     image: "redis:7.0-alpine"
@@ -228,7 +228,25 @@ services:
       - NET_ADMIN
       - NET_RAW
     volumes:
-      - ~/voLTE-lab/captures:/captures
+      - ./captures:/captures
+    command: bash -c "sleep infinity"
+
+  kali:
+    image: kali-lab:latest
+    build:
+      context: ./kali
+      dockerfile: Dockerfile
+    container_name: kali
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      volte-net:
+        ipv4_address: 172.20.0.99
+    volumes:
+      - ./attacks:/root/attacks
+      - ./results:/root/results
     command: bash -c "sleep infinity"
 
 volumes:

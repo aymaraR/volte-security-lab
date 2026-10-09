@@ -1,4 +1,4 @@
-# 📞 Flujo Completo de una Llamada VoLTE en el Laboratorio
+# Flujo Completo de una Llamada VoLTE en el Laboratorio
 
 ## 1. Visión General
 
@@ -82,7 +82,7 @@ Antes de cualquier llamada VoLTE, el UE debe haberse **adjuntado a la red LTE** 
 | 5.2 | La otra parte confirma con `200 OK` | `sip.Status-Code == 200` |
 | 5.3 | El PCRF libera el Dedicated Bearer QCI=1 | `diameter` |
 
-**Punto de interés para V7:** un `BYE` forjado sin verificación de los tags `From`/`To` del diálogo puede terminar la llamada de forma prematura sin haber participado en ella.
+**Punto de interés para V7:** un `BYE` forjado sin verificación de los tags `From`/`To` del diálogo puede terminar la llamada de forma prematura sin haber participado en ella. Verificado 2026-10-02: el BYE debe llevar como RURI el contacto remoto (`sip:172.20.0.7:5061`) con `Route: <sip:172.20.0.6:4060;lr>`; con RURI `sip:1000@<dominio>` el P-CSCF no lo enruta. Tras el BYE correcto se observa `200 OK` y `0 active channels` en Asterisk (evidencia `voLTE-lab/results/v7_bye_1001-to-1000_*.pcapng`).
 
 ---
 

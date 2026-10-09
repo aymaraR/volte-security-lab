@@ -1,4 +1,4 @@
-# 👁️ Herramienta: Wireshark
+# Herramienta: Wireshark
 
 ## 1. ¿Qué es Wireshark?
 
@@ -28,7 +28,8 @@ Wireshark es el **"ojo visor"** del laboratorio. Permite:
 Se aplican antes de capturar, en la interfaz. Reducen el volumen de datos.
 
 ```bash
-# Solo SIP (señalización)
+# Solo SIP (señalización) — en el lab los puertos reales son
+# P-CSCF 4060 / I-CSCF 5060 / S-CSCF 6060 sobre 172.20.0.6 (ver nota abajo)
 udp port 5060 or tcp port 5060
 
 # Solo RTP (audio) — rango de puertos de Asterisk
@@ -37,7 +38,8 @@ udp portrange 10000-20000
 # SIP + RTP combinado
 udp port 5060 or udp portrange 10000-20000
 
-# Todo el tráfico de un host específico
+# Todo el tráfico de un host específico (ejemplo; en el lab vigente
+# Kamailio es 172.20.0.6 y Asterisk 172.20.0.7 sobre 172.20.0.0/24)
 host 172.21.0.20
 ```
 
@@ -111,7 +113,7 @@ kill %1
 3. Click en **Analyze** → **Play Streams**.
 4. Wireshark decodifica el codec (PCMU, PCMA, AMR) y reproduce el audio.
 
-> ⚠️ Esto solo funciona si el RTP **no está cifrado con SRTP**. En el laboratorio, la configuración de Asterisk deliberadamente deja SRTP deshabilitado para demostrar la vulnerabilidad.
+> Nota: Esto solo funciona si el RTP **no está cifrado con SRTP**. En el laboratorio, la configuración de Asterisk deliberadamente deja SRTP deshabilitado para demostrar la vulnerabilidad.
 
 ---
 

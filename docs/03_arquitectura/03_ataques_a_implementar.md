@@ -1,6 +1,22 @@
-# ⚔️ Vectores de Ataque - Implementar y ejecutar
+# Vectores de Ataque - Implementar y ejecutar
 
-> ⚠️ **Propósito estrictamente académico.** Esta documentación analiza vulnerabilidades conocidas y publicadas en la literatura de seguridad. No se provee código malicioso ni instrucciones de ataque sobre redes reales.
+> **Propósito estrictamente académico.** Esta documentación analiza vulnerabilidades conocidas y publicadas en la literatura de seguridad. No se provee código malicioso ni instrucciones de ataque sobre redes reales.
+
+---
+
+## Estado de ejecución en el laboratorio (actualizado 2026-10-02)
+
+| Vector | Veredicto | Evidencia en `voLTE-lab/results/` |
+|---|---|---|
+| V1 Intercepción SIP/SDP | Vulnerable (SDP en claro, sin TLS) | `v1_mitm_sip_*.pcapng`, `v1_audio_*.wav` |
+| V2 DoS IMS | Degradación real en REGISTER flood (avg 6-9x, 1 timeout); INVITE/txn absorbidos | `v2_{invite,register,txn}_*` (6 pcap + 6 csv) |
+| V3 Suplantación | Vulnerable (INVITE forjado contestado, sin 403) | `v3_spoof_1001-to-1002.pcapng` |
+| V4 Cifrado radio | Bloqueado (sin tráfico GTP que capturar) | ver causa raíz en `voLTE-lab/kali.md` |
+| V5 Rogue eNodeB | Ejecutado, UE no atraído en ventana (2 corridas) | `v5_rogue_*.log` |
+| V6 GTP-U Injection | Bloqueado (sin TEID válido, código 2 explícito) | ver causa raíz en `voLTE-lab/kali.md` |
+| V7 BYE forjado | Vulnerable (llamada terminada, `1->0` canales) | `v7_bye_1001-to-1000_*.pcapng` |
+
+Todas las evidencias llevan hash SHA-256 en `results/hashes.txt`. Contramedidas pendientes (fase 4): TLS obligatorio en P-CSCF (V1), `pike` en Kamailio (V2), verificación P-Asserted-Identity (V3), verificación de tags de diálogo (V7), lista de celdas autorizadas (V5). Detalle operativo por vector en `voLTE-lab/kali.md`.
 
 ---
 
@@ -63,14 +79,21 @@ Los 7 vectores se seleccionaron porque:
 
 ## Vectores extendidos (contribución adicional, si el tiempo lo permite)
 
-### V5 — Rogue eNodeB
-- Segundo srsENB con mayor prioridad de celda (`dl_earfcn`) atrae al srsUE, demostrando ataque de celda falsa sin necesidad de SDR físico.
+### V5 — Rogue eNodeB (ejecutado 2026-10-02)
+
+- Segundo srsENB con takeover ZMQ (misma IP/puertos del eNB1 legítimo, PCI 7 / cell 0x09) para atraer al srsUE, sin SDR físico.
+- Resultado: en 2 corridas el UE no completó attach a la celda falsa en la ventana de observación (MME sin `S1AP/Attach` del IMSI ...789; al restaurar vuelve `CellID[0x19b01]`). Veredicto registrado: no atraído (no equivale a mitigado).
+- Evidencia: `voLTE-lab/results/v5_rogue_*.log` + hashes. Nota: la celda 2 (`.14`, PCI 2) es legítima, no es el ataque.
 
 ### V6 — GTP-U Injection
 - Inyección de paquetes en el túnel GTP-U del S/PGW usando Scapy con un TEID conocido, alterando el tráfico de datos del usuario.
 
-### V7 — SIP BYE Forjado
-- Terminación forzada de una llamada activa mediante un BYE sin autenticación de diálogo, explotando la ausencia de verificación de tags From/To.
+### V7 — SIP BYE Forjado (vulnerable confirmado 2026-10-02)
+
+- Terminación forzada de llamada activa (`1001->1000`) con BYE sin autenticación de diálogo. Requiere extraer `Call-ID`, tags `From/To` y `CSeq` del diálogo (captura en kamailio con `tcpdump`, extracción con `tshark` en kali: kamailio no trae `tshark`).
+- Detalle crítico: el RURI debe ser el contacto remoto (`sip:172.20.0.7:5061`) con `Route: <sip:172.20.0.6:4060;lr>`; con RURI `sip:1000@<dominio>` el P-CSCF no lo enruta.
+- Éxito medido: `BYE CSeq 50151` → `200 OK`, canales PJSIP `1->0` en Asterisk.
+- Evidencia: `voLTE-lab/results/v7_bye_1001-to-1000_*.pcapng` + hashes.
 
 ---
 
