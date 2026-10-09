@@ -1,4 +1,4 @@
-# ☎️ Herramienta: Kamailio
+# Herramienta: Kamailio
 
 ## 1. ¿Qué es Kamailio?
 
@@ -52,6 +52,9 @@ Kamailio funciona mediante módulos cargables. Los principales para IMS:
 
 ```c
 # kamailio.cfg — configuración mínima para laboratorio IMS
+# Nota de vigencia (2026-10-02): ejemplo ilustrativo. La config real está en
+# voLTE-lab/kamailio/{pcscf,icscf,scscf}/*.cfg con listen en 172.20.0.6
+# (P:4060 / I:5060 / S:6060) y Diameter Cx contra PyHSS (172.20.0.12:3868).
 
 #!KAMAILIO
 

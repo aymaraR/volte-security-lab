@@ -1,4 +1,4 @@
-# 🐉 Herramienta: Kali Linux
+# Herramienta: Kali Linux
 
 ## 1. ¿Qué es Kali Linux?
 
@@ -16,13 +16,15 @@
 El contenedor de Kali representa la **máquina atacante** dentro de la red IMS. Desde aquí se ejecutan las herramientas de captura, análisis e interceptación de tráfico SIP/RTP.
 
 ```
-Red IMS (172.21.0.0/24)
+Red volte-net (172.20.0.0/24) — topología vigente 2026-10-02
 ┌─────────────────────────────────────────┐
-│  Kamailio (172.21.0.10)                 │
-│  Asterisk  (172.21.0.20)                │
-│  Kali      (172.21.0.99) ← ATACANTE    │
+│  Kamailio (172.20.0.6, P:4060/I:5060/S:6060) │
+│  Asterisk  (172.20.0.7:5061)                 │
+│  Kali      (172.20.0.99) ← ATACANTE          │
 └─────────────────────────────────────────┘
 ```
+
+> El runbook operativo del atacante (inventario verificado, comandos por vector y estado V1-V7 con evidencias) está en `voLTE-lab/kali.md`; los wrappers de ataque en `voLTE-lab/vectores/`.
 
 ---
 

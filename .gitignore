@@ -1,0 +1,17 @@
+# Resultados y capturas de laboratorio (regenerables)
+voLTE-lab/results/
+*.pcapng
+*.pcap
+*.wav
+
+# Temporales del laboratorio
+voLTE-lab/.lab-tmp/
+.lab-tmp/
+*.tmp
+
+# Python
+__pycache__/
+*.pyc
+
+# Entornos / secretos locales
+*.env.local

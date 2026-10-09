@@ -1,5 +1,13 @@
 # Integración IMS — Kamailio + Asterisk
 
+> NOTA DE VIGENCIA (2026-10-02): procedimiento manual LEGACY. Hoy el levantado
+> esta automatizado en `lab-up.sh` pasos 6-7 (Kamailio 3 CSCF + Asterisk con
+> espera de `Registered`) y los contenedores SI usan bind mounts declarados en
+> `docker-compose.yml`. Este documento se conserva como referencia de
+> diagnostico manual; para operar el lab usar `./lab-up.sh`.
+> Topologia vigente: Kamailio `172.20.0.6` (P:4060/I:5060/S:6060), Asterisk
+> `172.20.0.7:5061`, HSS IMS PyHSS (`172.20.0.10/.11/.12`, Diameter Cx 3868).
+
 Una vez que las imágenes de Kamailio y Asterisk están construidas y el `docker-compose.yml` está corriendo, este paso configura y arranca los tres nodos IMS de Kamailio (P-CSCF, I-CSCF, S-CSCF) y verifica que Asterisk se registra correctamente en el S-CSCF.
 
 ## Requisitos previos
@@ -21,7 +29,7 @@ docker cp ~/voLTE-lab/asterisk/pjsip.conf asterisk:/etc/asterisk/pjsip.conf
 docker cp ~/voLTE-lab/asterisk/extensions.conf asterisk:/etc/asterisk/extensions.conf
 ```
 
-> ⚠️ Ningún contenedor tiene bind mount — los configs se pierden si el contenedor se recrea.
+> Nota: Ningún contenedor tiene bind mount — los configs se pierden si el contenedor se recrea.
 
 ## Arquitectura de puertos IMS
 
@@ -103,9 +111,9 @@ Objects found: 1
 ```
 
 Esto confirma que:
-- Asterisk alcanza el S-CSCF ✅
-- Asterisk está registrado en el S-CSCF como TAS ✅
-- El stack IMS completo está operativo ✅
+- Asterisk alcanza el S-CSCF (ok)
+- Asterisk está registrado en el S-CSCF como TAS (ok)
+- El stack IMS completo está operativo (ok)
 
 ## Siguiente paso
 
