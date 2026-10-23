@@ -43,6 +43,12 @@ command -v docker >/dev/null 2>&1 || die "docker no encontrado en PATH"
 docker info >/dev/null 2>&1 || die "Docker daemon no responde (prende Docker Desktop)"
 docker compose version >/dev/null 2>&1 || die "se requiere Docker Compose v2"
 
+# .env no se versiona: se crea desde la plantilla en un clon limpio.
+if [ ! -f ./pyhss/docker/.env ]; then
+  cp ./pyhss/docker/.env.example ./pyhss/docker/.env \
+    || die "falta pyhss/docker/.env y no se pudo copiar .env.example"
+fi
+
 need_image() {
   docker image inspect "$1" >/dev/null 2>&1 || die "falta imagen $1 — constrúyela antes (ver README del componente)"
 }
@@ -176,6 +182,8 @@ if [ ! -f kamailio/tls/tls.crt ]; then
     -addext "subjectAltName=DNS:pcscf.ims.mnc070.mcc999.3gppnetwork.org,IP:172.20.0.6" \
     >/dev/null 2>&1 || die "no se pudo generar cert TLS (openssl)"
 fi
+# El UE (baresip) monta este directorio: el cert debe existir también acá.
+cp kamailio/tls/tls.crt srsran/baresip-config/tls.crt
 docker rm -f kamailio >/dev/null 2>&1 || true
 docker run -d --name kamailio --network volte-lab_volte-net --ip 172.20.0.6 \
   --privileged --cap-add NET_ADMIN \
@@ -281,6 +289,7 @@ lines = [l if not (l.startswith("<sip:1002@") and "answermode" not in l) else l.
 (b2/"accounts").write_text("\n".join(lines) + "\n")
 print("cell2 configs OK")
 EOF
+cp kamailio/tls/tls.crt .lab-tmp/baresip2/tls.crt
 docker rm -f srsenb2 >/dev/null 2>&1 || true
 T0=$(date +%s)
 docker run -d --name srsenb2 --network volte-lab_volte-net --ip 172.20.0.14 \
@@ -350,8 +359,9 @@ docker exec srsue sh -c "ip route del 172.20.0.6/32 dev tun_srsue 2>/dev/null; i
 docker exec srsue2 sh -c "ip route del 172.20.0.6/32 dev tun_srsue 2>/dev/null; ip route del 172.20.0.7/32 dev tun_srsue 2>/dev/null; true"
 docker exec srsue pkill -x baresip >/dev/null 2>&1 || true
 docker exec srsue2 bash -c "mkdir -p /root/.baresip" >/dev/null 2>&1 || true
-docker cp .lab-tmp/baresip2/accounts srsue2:/root/.baresip/accounts
-docker cp .lab-tmp/baresip2/config srsue2:/root/.baresip/config
+docker exec -i srsue2 sh -c "cat > /root/.baresip/accounts" < .lab-tmp/baresip2/accounts
+docker exec -i srsue2 sh -c "cat > /root/.baresip/config" < .lab-tmp/baresip2/config
+docker exec -i srsue2 sh -c "cat > /root/.baresip/tls.crt" < .lab-tmp/baresip2/tls.crt
 docker exec srsue2 bash -c "touch /root/.baresip/contacts /root/.baresip/uuid"
 docker exec srsue2 pkill -x baresip >/dev/null 2>&1 || true
 sleep 1

@@ -88,9 +88,9 @@ log "Asterisk OK: res_srtp Running + ue-endpoint media_encryption=sdes"
 # --- 7. Reiniciar baresip (UE1/UE2) con TLS+SRTP ---
 docker exec srsue pkill -x baresip >/dev/null 2>&1 || true
 docker exec srsue2 pkill -x baresip >/dev/null 2>&1 || true
-docker cp .lab-tmp/baresip2/accounts srsue2:/root/.baresip/accounts >/dev/null
-docker cp .lab-tmp/baresip2/config srsue2:/root/.baresip/config >/dev/null
-docker cp .lab-tmp/baresip2/tls.crt srsue2:/root/.baresip/tls.crt >/dev/null
+docker exec -i srsue2 sh -c "cat > /root/.baresip/accounts" < .lab-tmp/baresip2/accounts
+docker exec -i srsue2 sh -c "cat > /root/.baresip/config" < .lab-tmp/baresip2/config
+docker exec -i srsue2 sh -c "cat > /root/.baresip/tls.crt" < .lab-tmp/baresip2/tls.crt
 sleep 1
 docker exec -d srsue bash -c "export HOME=/root; baresip -f /root/.baresip > /tmp/baresip.log 2>&1"
 docker exec -d srsue2 bash -c "export HOME=/root; baresip -f /root/.baresip > /tmp/baresip2.log 2>&1"

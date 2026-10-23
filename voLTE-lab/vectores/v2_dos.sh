@@ -40,6 +40,7 @@ else
   CSV="/tmp/v2_${MODE}_${COUNT}_$TS.csv"
 fi
 CSVNAME="v2_${MODE}_${COUNT}_$TS.csv"
+if [ "$PROBE_CONT" = "kali" ]; then PROBE_SRC=172.20.0.99; else PROBE_SRC=172.20.0.10; fi
 
 stop_sampler() {
   docker exec "$PROBE_CONT" touch /tmp/v2sample.stop >/dev/null 2>&1 || true
@@ -72,7 +73,8 @@ grep -a -iE "modparam.*pike|pike_check|reqs_density" kamailio/scscf/scscf.cfg ||
 # "rtt_ms=<n> status=<200|401|503|TIMEOUT>".
 docker cp attacks/v2_dos_ims/sip_probe.py "$PROBE_CONT":/tmp/sip_probe.py
 rtt() {
-  docker exec -e PROBE_TARGET="$TARGET" -e PROBE_PORT="$PORT" -e PROBE_USER=1000 -e PROBE_DOMAIN="$DOMAIN" \
+  docker exec -e PROBE_TARGET="$TARGET" -e PROBE_PORT="$PORT" -e PROBE_USER=probe \
+    -e PROBE_SRC_IP="$PROBE_SRC" -e PROBE_DOMAIN="$DOMAIN" \
     "$PROBE_CONT" python3 /tmp/sip_probe.py 2>/dev/null
 }
 
@@ -82,8 +84,8 @@ PCAP="/root/results/v2_${MODE}_${COUNT}_$TS.pcapng"
 docker exec -d kali sh -c "timeout 300 tshark -i eth0 -w $PCAP -f 'udp port $PORT' >/dev/null 2>&1"
 # Muestreador de latencia durante el flood -> CSV (§5.2 tesis).
 # Se detiene con /tmp/v2sample.stop (stop_sampler), no con pkill.
-docker exec -d -e CSV="$CSV" -e TARGET="$TARGET" -e PORT="$PORT" -e DOMAIN="$DOMAIN" "$PROBE_CONT" sh -c \
-  'rm -f /tmp/v2sample.stop; echo "ts,rtt_ms,status" > "$CSV"; while [ ! -f /tmp/v2sample.stop ]; do S=$(date +%s); OUT=$(PROBE_TARGET=$TARGET PROBE_PORT=$PORT PROBE_USER=1000 PROBE_DOMAIN=$DOMAIN PROBE_TIMEOUT=6 python3 /tmp/sip_probe.py 2>/dev/null); MS=$(echo "$OUT" | grep -a -oE "rtt_ms=[0-9]+" | cut -d= -f2); CODE=$(echo "$OUT" | grep -a -oE "status=[A-Z0-9]+" | cut -d= -f2); [ -n "$MS" ] || MS=6000; [ -n "$CODE" ] || CODE="TIMEOUT"; echo "$S,$MS,$CODE" >> "$CSV"; sleep 2; done' >/dev/null 2>&1
+docker exec -d -e CSV="$CSV" -e TARGET="$TARGET" -e PORT="$PORT" -e DOMAIN="$DOMAIN" -e PROBE_SRC="$PROBE_SRC" "$PROBE_CONT" sh -c \
+  'rm -f /tmp/v2sample.stop; echo "ts,rtt_ms,status" > "$CSV"; while [ ! -f /tmp/v2sample.stop ]; do S=$(date +%s); OUT=$(PROBE_TARGET=$TARGET PROBE_PORT=$PORT PROBE_USER=probe PROBE_SRC_IP=$PROBE_SRC PROBE_DOMAIN=$DOMAIN PROBE_TIMEOUT=6 python3 /tmp/sip_probe.py 2>/dev/null); MS=$(echo "$OUT" | grep -a -oE "rtt_ms=[0-9]+" | cut -d= -f2); CODE=$(echo "$OUT" | grep -a -oE "status=[A-Z0-9]+" | cut -d= -f2); [ -n "$MS" ] || MS=6000; [ -n "$CODE" ] || CODE="TIMEOUT"; echo "$S,$MS,$CODE" >> "$CSV"; sleep 2; done' >/dev/null 2>&1
 log "Muestreador latencia -> $CSV (cada 2s: timestamp, RTT, status)."
 sleep 2
 
@@ -146,6 +148,18 @@ HC=$(sha256sum "results/$CSVNAME" | cut -d' ' -f1)
 FN=$(basename "$PCAP"); FC="$CSVNAME"
 echo "$H  $FN  V2-$MODE  $(date -u +%Y-%m-%dT%H:%M:%SZ)  $MODE $COUNT a $TARGET:$PORT (base $BASE, post $DURING; $SUM)" >> results/hashes.txt
 echo "$HC  $FC  V2-$MODE-csv  $(date -u +%Y-%m-%dT%H:%M:%SZ)  latencia REGISTER-probe desde $PROBE_CONT durante flood ($SUM)" >> results/hashes.txt
-log "hashes registrados (pcap + csv). Analizar: tshark -r $PCAP -d udp.port==9,sip -Y sip.Status-Code"
+P403=$(docker exec kali tshark -r "$PCAP" -d udp.port==6060,sip -Y 'sip.Status-Code==403' 2>/dev/null | wc -l | tr -d ' \r')
+TMAX=$(awk -F, 'NR>1{if($2>m)m=$2}END{print m+0}' "results/$CSVNAME")
+TTO=$(awk -F, 'NR>1 && $3=="TIMEOUT"{t++}END{print t+0}' "results/$CSVNAME")
+F503=$(awk -F, 'NR>1 && $3=="503"{f++}END{print f+0}' "results/$CSVNAME")
+log "Atacante: ${P403:-0} respuestas 403 (pike)."
+if [ "${P403:-0}" -gt 0 ]; then
+  log "VEREDICTO: MITIGADO (pike bloqueó al atacante; sonda $PROBE_CONT: $SUM)."
+elif [ "$TTO" -gt 0 ] || [ "$F503" -gt 0 ] || [ "$TMAX" -gt 5000 ]; then
+  log "VEREDICTO: VULNERABLE (servicio degradado: max=${TMAX}ms, timeouts=$TTO, 503=$F503)."
+else
+  log "VEREDICTO: sin degradación medible (revisar carga/ventana)."
+fi
+log "hashes registrados (pcap + csv)."
 log "Veredicto: con pike activo el atacante recibe 403 y la sonda neutral mantiene RTT normal."
 log "F4 contramedida (scscf.cfg): loadmodule pike.so + modparam sampling_time_unit 2 + reqs_density_per_unit 30 + pike_check_req() al inicio de request_route; reiniciar S-CSCF y re-ejecutar (se espera bloqueo del atacante y RTT legítimo normal)."

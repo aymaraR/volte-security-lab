@@ -18,27 +18,28 @@ USER = os.environ.get("PROBE_USER", "1000")
 DOMAIN = os.environ.get("PROBE_DOMAIN", "ims.mnc070.mcc999.3gppnetwork.org")
 METHOD = os.environ.get("PROBE_METHOD", "REGISTER").upper()
 TIMEOUT = float(os.environ.get("PROBE_TIMEOUT", "6"))
+SRC = os.environ.get("PROBE_SRC_IP", "172.20.0.99")
 
 
 def build():
-    callid = "probe-%d@172.20.0.99" % random.randint(1, 1 << 30)
+    callid = "probe-%d@%s" % (random.randint(1, 1 << 30), SRC)
     branch = "z9hG4bKprobe%d" % random.randint(1, 1 << 30)
     if METHOD == "REGISTER":
         return (("REGISTER sip:%s SIP/2.0\r\n"
-                 "Via: SIP/2.0/UDP 172.20.0.99:5060;branch=%s;rport\r\n"
+                 "Via: SIP/2.0/UDP %s:5060;branch=%s;rport\r\n"
                  "From: <sip:%s@%s>;tag=probe1\r\n"
                  "To: <sip:%s@%s>\r\n"
                  "Call-ID: %s\r\nCSeq: 1 REGISTER\r\n"
-                 "Contact: <sip:probe@172.20.0.99:5060>\r\n"
+                 "Contact: <sip:probe@%s:5060>\r\n"
                  "Expires: 3600\r\nContent-Length: 0\r\n\r\n")
-                % (DOMAIN, branch, USER, DOMAIN, USER, DOMAIN, callid)).encode()
+                % (DOMAIN, SRC, branch, USER, DOMAIN, USER, DOMAIN, callid, SRC)).encode()
     return (("OPTIONS sip:%s@%s SIP/2.0\r\n"
-             "Via: SIP/2.0/UDP 172.20.0.99:5060;branch=%s;rport\r\n"
+             "Via: SIP/2.0/UDP %s:5060;branch=%s;rport\r\n"
              "From: <sip:probe@%s>;tag=probe1\r\n"
              "To: <sip:%s@%s>\r\n"
              "Call-ID: %s\r\nCSeq: 1 OPTIONS\r\n"
              "Content-Length: 0\r\n\r\n")
-            % (USER, DOMAIN, branch, DOMAIN, USER, DOMAIN, callid)).encode()
+            % (USER, DOMAIN, SRC, branch, DOMAIN, USER, DOMAIN, callid)).encode()
 
 
 def main():
