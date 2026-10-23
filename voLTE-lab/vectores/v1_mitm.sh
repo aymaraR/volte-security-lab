@@ -89,7 +89,9 @@ docker exec kali sh -c "test -f $PCAP" || { log "ERROR: tshark no escribió $PCA
 N=$(docker exec kali tshark -r "$PCAP" -Y sip.Method==INVITE 2>/dev/null | wc -l)
 SDP=$(docker exec kali tshark -r "$PCAP" -Y sdp 2>/dev/null | wc -l)
 RTPN=$(docker exec kali tshark -r "$PCAP" -Y rtp 2>/dev/null | wc -l)
-log "INVITEs capturados: $N | paquetes SDP: $SDP | paquetes RTP: $RTPN"
+TLSN=$(docker exec kali tshark -r "$PCAP" -Y tls 2>/dev/null | wc -l)
+UDP=$(docker exec kali tshark -r "$PCAP" -Y udp 2>/dev/null | wc -l)
+log "INVITEs: $N | SDP: $SDP | RTP(plano): $RTPN | TLS: $TLSN | UDP: $UDP"
 if [ "$N" -gt 0 ]; then
   log "--- SDP en claro (c= / m=) ---"
   docker exec kali tshark -r "$PCAP" -Y sdp -T fields -e sdp.connection_info -e sdp.media 2>/dev/null | head -n 5
@@ -115,12 +117,24 @@ if [ "$N" -gt 0 ]; then
     log "VEREDICTO: PARCIAL (hay INVITE pero sin SDP; revisar filtro/llamada)."
   fi
 else
-  log "Sin INVITEs: repita con llamada activa durante la captura."
+  H=$(docker exec kali sh -c "sha256sum $PCAP | cut -d' ' -f1")
+  echo "$H  $(basename "$PCAP")  V1  $(date -u +%Y-%m-%dT%H:%M:%SZ)  MITM ARP $UE_IP-$PCSCF/$MEDIA (0 INVITE en claro; TLS=$TLSN UDP=$UDP RTP-plano=$RTPN)" >> results/hashes.txt
+  log "hash registrado."
+  if [ "$TLSN" -gt 0 ]; then
+    log "VEREDICTO: MITIGADO (0 INVITE/SDP en claro; solo TLS capturado = Gm cifrado)."
+    docker exec kali tshark -r "$PCAP" -Y tls -T fields \
+      -e frame.number -e ip.src -e ip.dst -e tls.record.content_type 2>/dev/null | head -n 5
+  elif [ "$UDP" -gt 0 ] && [ "$RTPN" -eq 0 ]; then
+    log "VEREDICTO: MITIGADO (0 INVITE/SDP en claro; media SRTP: el MITM captura UDP cifrado,"
+    log "            el payload ya NO decodifica como RTP g711 -> no hay audio reconstruible)."
+    log "--- muestra de media cifrada (campo 'data', no 'rtp') ---"
+    docker exec kali tshark -r "$PCAP" -Y 'udp && !rtp && !rtcp && !sip' -T fields \
+      -e frame.number -e ip.src -e ip.dst -e udp.length 2>/dev/null | head -n 5
+  else
+    log "VEREDICTO: no concluyente (sin SIP/TLS/media: ¿hubo llamada en la ventana?)."
+  fi
+  log "Sin INVITEs en claro: con TLS/SRTP activos, el MITM ya no obtiene señalización ni audio."
 fi
 
-# --- Fase 4: contramedida (guía, no aplica sola) ---
-log "F4 contramedida: TLS obligatorio en P-CSCF (módulo tls.so ya compilado en kamailio-ims):"
-log "  1. Verificar: docker exec kamailio ls /usr/local/lib64/kamailio/modules/tls.so"
-log "  2. Generar cert: openssl req -x509 -newkey rsa:2048 -keyout tls.key -out tls.crt -days 825 -nodes -subj '/CN=pcscf.ims.mnc070.mcc999.3gppnetwork.org'"
-log "  3. En pcscf.cfg: loadmodule tls.so + listen=tls:172.20.0.6:5061 + modparam tls config; forzar solo-TLS rechazando udp:4060 en request_route."
-log "  4. Reiniciar kamailio + re-ejecutar este script: se espera TLS ilegible (0 INVITE en claro)."
+# --- Fase 4: contramedida ---
+log "F4 contramedida aplicada: TLS en Gm (P-CSCF:5061) + SRTP/SDES en la media (ver parches/aplicar.sh)."

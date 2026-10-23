@@ -176,3 +176,28 @@ en `/tmp/ue.log` de srsue. El registro SIP vía túnel (paso 13 de lab-up.sh)
 falla sistemáticamente; el registro vía bridge (paso 12) funciona siempre.
 V1/V2/V3/V7 no necesitan el túnel. Desbloquear V4/V6 requiere fijar el
 Service Request (interlab srsUE↔MME) o aceptar ventana CONNECTED post-attach.
+
+## Fase 4 — Contramedidas aplicadas y validadas (2026-10-23)
+
+Ciclo completo (ataque -> evidencia -> parche -> re-prueba) ejecutado sobre
+el lab UP. Parches reproducibles en `parches/aplicar.sh` (y `revertir.sh` para
+volver al estado vulnerable). Detalle de archivos modificados en `parches/`.
+
+| Vector | Veredicto vulnerable (baseline) | Contramedida | Veredicto mitigado | Evidencia (results/) |
+|---|---|---|---|---|
+| V1 | VULNERABLE: 2 INVITE + 4 SDP en claro, 9980 RTP g711U, audio 99.8s reconstruido | TLS en Gm (P-CSCF:5061, `tls.cfg`) + SRTP/SDES en media | MITIGADO: 0 INVITE/SDP en claro, media SRTP no reconstruible (`v1_mitm_sip_*T014104Z.pcapng`) | `v1_audio_*T011807Z.wav` + 2 pcap |
+| V2 | DEGRADADO: REGISTER flood avg 702ms max 6007ms 1 timeout (sonda en kali) | `pike` en S-CSCF (`reqs_density_per_unit 30/2s`) | MITIGADO: atacante .99 -> 2963x403; sonda neutral pyhss_hss avg 99ms max 202ms 0 timeout | `v2_register_3000_*T014252Z.{pcapng,csv}` |
+| V3 | VULNERABLE: INVITE forjado 1001->1002 contestado, 0x403 | binding IMPU<->IP origen en P-CSCF (htable, solo 2xx REGISTER) | MITIGADO: 3 INVITE -> 3x403 "Identity Origin Mismatch", 1002 no contesta | `v3_spoof_1001-to-1002_*T015102Z.pcapng` |
+| V7 | VULNERABLE: BYE forjado -> llamada 1->0 | mismo binding + TLS (tags no observables) | MITIGADO: BYE rechazado 403, llamada sigue 1->1 | `v7_bye_1001-to-1000_*T014557Z.pcapng` |
+
+Notas de implementación (Fase 4):
+- Kamailio 5.8+ exige `enable_tls=1` y `tls.cfg` (`[server:default] method=TLSv1.2+`);
+  el `modparam("tls","method",...)` fue removido (parse error) — ver `parches/tls.cfg`.
+- baresip UE: `;transport=tls` + `outbound=...:5061;transport=tls` + `;mediaenc=srtp-mand`
+  + `sip_cafile=/root/.baresip/tls.crt` + `module srtp.so`. Cert autofirmado con
+  SAN `IP:172.20.0.6` y `basicConstraints=CA:TRUE`.
+- Asterisk: `ue-endpoint` y `scscf` con `media_encryption=sdes`.
+- V2: la sonda legítima debe originarse desde un host distinto del atacante
+  (`PROBE_CONT=pyhss_hss`) o pike la bloquea también (mismo origen).
+- `lab-up.sh`/`docker-compose.yml` ya montan `kamailio/tls/` y `parches/tls.cfg`;
+  `lab-up.sh` genera el cert si falta.

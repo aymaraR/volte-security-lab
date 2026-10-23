@@ -47,7 +47,8 @@ grep -a -iE "P-Asserted|asserted|trusted|403" kamailio/scscf/scscf.cfg | head -n
 
 # --- Fase 3: explotación ---
 docker cp attacks/v3_identity_spoof/v3_spoof.py kali:/root/v3_spoof.py
-docker exec -d kamailio sh -c "timeout 90 tcpdump -i eth0 -w /tmp/v3.pcapng udp port 4060 or udp port 6060 >/tmp/v3cap.log 2>&1"
+docker exec kamailio sh -c "pkill -x tcpdump 2>/dev/null; rm -f /tmp/v3.pcapng; true"
+docker exec -d kamailio sh -c "timeout 25 tcpdump -i eth0 -w /tmp/v3.pcapng 'udp port 4060 or udp port 6060' >/tmp/v3cap.log 2>&1"
 sleep 2
 OUT=$(docker exec -e VICTIM="$VICTIM" -e TARGET="$TARGET" -e PCSCF="$PCSCF" -e PORT="$PORT" -e DOMAIN="$DOMAIN" \
   kali python3 /root/v3_spoof.py 2>&1)
@@ -55,28 +56,44 @@ echo "$OUT"
 CALLID=$(echo "$OUT" | grep -a -oE "forged-v3-[0-9]+@[0-9.]+" | head -n 1)
 log "Call-ID forjado: ${CALLID:-(ver log)}"
 sleep 15
+docker exec kamailio sh -c "pkill -x tcpdump 2>/dev/null; true" >/dev/null 2>&1 || true
+sleep 1
 log "--- S-CSCF (lookup/404/403) ---"
 docker exec kamailio sh -c "strings /tmp/scscf.log | grep -a -E 'lookup retcode| 404 | 403 ' | tail -n 4" || log "(sin 403/404 en scscf.log)"
 log "--- UE destino (llamada entrante?) ---"
 DESTLOG=$(docker exec srsue2 sh -c "grep -a -iE 'incoming|answering|Failed' /tmp/baresip2.log 2>/dev/null | tail -n 3" || true)
 echo "$DESTLOG"
-log "--- tcpdump kamailio: INVITE forjado llegó? ---"
-docker exec kamailio sh -c "tcpdump -r /tmp/v3.pcapng -Y sip 2>/dev/null | grep -a -c INVITE" || true
-
 # Evidencia a results/ (volumen compartido kali:/root/results -> ./results)
 docker cp kamailio:/tmp/v3.pcapng "/tmp/v3_$TS.pcapng" 2>/dev/null || { log "ERROR: sin pcap en kamailio"; exit 1; }
 cp "/tmp/v3_$TS.pcapng" "results/v3_spoof_${VICTIM}-to-${TARGET}_$TS.pcapng"
-docker exec kali sh -c "cp /root/results/v3_spoof_${VICTIM}-to-${TARGET}_$TS.pcapng /tmp/v3check.pcapng 2>/dev/null || true"
-H=$(docker exec kali sh -c "sha256sum /root/results/v3_spoof_${VICTIM}-to-${TARGET}_$TS.pcapng | cut -d' ' -f1")
-echo "$H  v3_spoof_${VICTIM}-to-${TARGET}_$TS.pcapng  V3  $(date -u +%Y-%m-%dT%H:%M:%SZ)  INVITE forjado From $VICTIM To $TARGET Call-ID ${CALLID:-n/a}" >> results/hashes.txt
+docker cp "results/v3_spoof_${VICTIM}-to-${TARGET}_$TS.pcapng" kali:/root/results/ >/dev/null 2>&1 || true
+PCAPK="/root/results/v3_spoof_${VICTIM}-to-${TARGET}_$TS.pcapng"
+
+# kamailio no trae tshark: el conteo se hace en kali (no usar 'tcpdump -Y').
+# decode-as para los puertos no estándar del IMS (4060/6060).
+DA="-d udp.port==4060,sip -d udp.port==6060,sip -d udp.port==5060,sip"
+INVN=$(docker exec kali tshark -r "$PCAPK" $DA -Y 'sip.Method == "INVITE"' 2>/dev/null | wc -l | tr -d ' \r')
+FORBN=$(docker exec kali tshark -r "$PCAPK" $DA -Y 'sip.Status-Code == 403' 2>/dev/null | wc -l | tr -d ' \r')
+log "--- pcap kamailio: INVITEs=$INVN respuestas 403=$FORBN ---"
+if [ "$FORBN" -gt 0 ]; then
+  docker exec kali tshark -r "$PCAPK" $DA -Y 'sip.Status-Code == 403' -T fields \
+    -e frame.number -e ip.src -e ip.dst -e sip.Status-Code -e sip.Reason-Phrase 2>/dev/null | head -n 3
+fi
+# El P-CSCF (no el S-CSCF) es quien rechaza la suplantación.
+PCSBLK=$(docker exec kamailio sh -c "strings /tmp/pcscf.log 2>/dev/null | grep -a -cE 'Origin Mismatch|Unknown Identity|desde .* != origen'" || true)
+log "--- P-CSCF rechazos de identidad: $PCSBLK ---"
+H=$(docker exec kali sh -c "sha256sum $PCAPK | cut -d' ' -f1")
+echo "$H  v3_spoof_${VICTIM}-to-${TARGET}_$TS.pcapng  V3  $(date -u +%Y-%m-%dT%H:%M:%SZ)  INVITE forjado From $VICTIM To $TARGET Call-ID ${CALLID:-n/a} (INVITEs=$INVN, 403=$FORBN, PCSF-bloqueos=$PCSBLK)" >> results/hashes.txt
 log "hash registrado."
 
 # Veredicto automático
-if echo "$DESTLOG" | grep -a -qiE "answering|incoming.*$VICTIM|call.*from.*$VICTIM"; then
+if [ "$FORBN" -gt 0 ] || [ "${PCSBLK:-0}" -gt 0 ]; then
+  log "VEREDICTO: MITIGADO (P-CSCF rechazó con 403: identidad no coincide con el origen registrado)."
+elif echo "$DESTLOG" | grep -a -qiE "answering|incoming.*$VICTIM|call.*from.*$VICTIM"; then
   log "VEREDICTO: VULNERABLE (llamada contestada/mostrada como $VICTIM sin 403)."
 elif docker exec kamailio sh -c "strings /tmp/scscf.log | grep -a -q ' 403 '" 2>/dev/null; then
-  log "VEREDICTO: MITIGADO (403 observado; PAI verificado)."
+  log "VEREDICTO: MITIGADO (403 observado en S-CSCF)."
 else
-  log "VEREDICTO: revisar manual (buscar 'answering call ... from sip:$VICTIM' en srsue2 y 403 en scscf.log)."
+  log "VEREDICTO: revisar manual (buscar 'answering call ... from sip:$VICTIM' en srsue2 y 403 en pcscf.log)."
 fi
 log "F4 contramedida: verificar P-Asserted-Identity contra registro autenticado -> re-ejecutar -> 403 esperado."

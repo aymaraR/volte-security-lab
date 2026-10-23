@@ -166,6 +166,16 @@ print("ims provisioning OK", flush=True)
 EOF
 
 log "== 6/13 IMS: kamailio (P:4060/I:5060/S:6060, sin puertos al host) =="
+# Contramedidas (Fase 4): certificado TLS del P-CSCF (idempotente).
+mkdir -p kamailio/tls
+if [ ! -f kamailio/tls/tls.crt ]; then
+  openssl req -x509 -newkey rsa:2048 -sha256 -days 825 -nodes \
+    -keyout kamailio/tls/tls.key -out kamailio/tls/tls.crt \
+    -subj "/CN=pcscf.ims.mnc070.mcc999.3gppnetwork.org" \
+    -addext "basicConstraints=critical,CA:TRUE" \
+    -addext "subjectAltName=DNS:pcscf.ims.mnc070.mcc999.3gppnetwork.org,IP:172.20.0.6" \
+    >/dev/null 2>&1 || die "no se pudo generar cert TLS (openssl)"
+fi
 docker rm -f kamailio >/dev/null 2>&1 || true
 docker run -d --name kamailio --network volte-lab_volte-net --ip 172.20.0.6 \
   --privileged --cap-add NET_ADMIN \
@@ -175,6 +185,8 @@ docker run -d --name kamailio --network volte-lab_volte-net --ip 172.20.0.6 \
   -v "$PWD/kamailio/pcscf/pcscf.cfg:/usr/local/etc/kamailio/pcscf.cfg" \
   -v "$PWD/kamailio/scscf/scscf_diameter.xml:/usr/local/etc/kamailio/scscf_diameter.xml" \
   -v "$PWD/kamailio/icscf/icscf_diameter.xml:/usr/local/etc/kamailio/icscf_diameter.xml" \
+  -v "$PWD/kamailio/tls:/etc/kamailio/tls:ro" \
+  -v "$PWD/parches/tls.cfg:/etc/kamailio/tls.cfg:ro" \
   kamailio-ims:latest bash -c "sleep infinity" >/dev/null
 sleep 3
 for cfg in scscf icscf pcscf; do

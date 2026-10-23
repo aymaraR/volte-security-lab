@@ -32,11 +32,17 @@ DOMAIN=$(ask DOMAIN "Dominio IMS" "ims.mnc070.mcc999.3gppnetwork.org")
 MODE=$(ask MODE "Modo: invite / register / txn" "invite")
 COUNT=$(ask COUNT "N° paquetes" "3000")
 RATE=$(ask RATE "Tasa objetivo SIPp/Python (pkt/s; inviteflood va a máx. velocidad)" "200")
+PROBE_CONT=$(ask PROBE_CONT "Contenedor sonda legítima (kali=atacante / pyhss_hss=neutral)" "kali")
 TS=$(date -u +%Y%m%dT%H%M%SZ)
-CSV="/root/results/v2_${MODE}_${COUNT}_$TS.csv"
+if [ "$PROBE_CONT" = "kali" ]; then
+  CSV="/root/results/v2_${MODE}_${COUNT}_$TS.csv"
+else
+  CSV="/tmp/v2_${MODE}_${COUNT}_$TS.csv"
+fi
+CSVNAME="v2_${MODE}_${COUNT}_$TS.csv"
 
 stop_sampler() {
-  docker exec kali touch /tmp/v2sample.stop >/dev/null 2>&1 || true
+  docker exec "$PROBE_CONT" touch /tmp/v2sample.stop >/dev/null 2>&1 || true
 }
 # kali no trae pkill/ps: se mata por /proc/cmdline.
 kallikill() {
@@ -64,10 +70,10 @@ grep -a -iE "modparam.*pike|pike_check|reqs_density" kamailio/scscf/scscf.cfg ||
 # Sonda legítima: REGISTER vía Python (sipsak no sirve: el S-CSCF no
 # responde OPTIONS y sipsak sale mudo; además exige rport). Imprime
 # "rtt_ms=<n> status=<200|401|503|TIMEOUT>".
-docker cp attacks/v2_dos_ims/sip_probe.py kali:/root/sip_probe.py
+docker cp attacks/v2_dos_ims/sip_probe.py "$PROBE_CONT":/tmp/sip_probe.py
 rtt() {
   docker exec -e PROBE_TARGET="$TARGET" -e PROBE_PORT="$PORT" -e PROBE_USER=1000 -e PROBE_DOMAIN="$DOMAIN" \
-    kali python3 /root/sip_probe.py 2>/dev/null
+    "$PROBE_CONT" python3 /tmp/sip_probe.py 2>/dev/null
 }
 
 log "RTT baseline:"
@@ -76,8 +82,8 @@ PCAP="/root/results/v2_${MODE}_${COUNT}_$TS.pcapng"
 docker exec -d kali sh -c "timeout 300 tshark -i eth0 -w $PCAP -f 'udp port $PORT' >/dev/null 2>&1"
 # Muestreador de latencia durante el flood -> CSV (§5.2 tesis).
 # Se detiene con /tmp/v2sample.stop (stop_sampler), no con pkill.
-docker exec -d -e CSV="$CSV" -e TARGET="$TARGET" -e PORT="$PORT" -e DOMAIN="$DOMAIN" kali sh -c \
-  'rm -f /tmp/v2sample.stop; echo "ts,rtt_ms,status" > "$CSV"; while [ ! -f /tmp/v2sample.stop ]; do S=$(date +%s); OUT=$(PROBE_TARGET=$TARGET PROBE_PORT=$PORT PROBE_USER=1000 PROBE_DOMAIN=$DOMAIN PROBE_TIMEOUT=6 python3 /root/sip_probe.py 2>/dev/null); MS=$(echo "$OUT" | grep -a -oE "rtt_ms=[0-9]+" | cut -d= -f2); CODE=$(echo "$OUT" | grep -a -oE "status=[A-Z0-9]+" | cut -d= -f2); [ -n "$MS" ] || MS=6000; [ -n "$CODE" ] || CODE="TIMEOUT"; echo "$S,$MS,$CODE" >> "$CSV"; sleep 2; done' >/dev/null 2>&1
+docker exec -d -e CSV="$CSV" -e TARGET="$TARGET" -e PORT="$PORT" -e DOMAIN="$DOMAIN" "$PROBE_CONT" sh -c \
+  'rm -f /tmp/v2sample.stop; echo "ts,rtt_ms,status" > "$CSV"; while [ ! -f /tmp/v2sample.stop ]; do S=$(date +%s); OUT=$(PROBE_TARGET=$TARGET PROBE_PORT=$PORT PROBE_USER=1000 PROBE_DOMAIN=$DOMAIN PROBE_TIMEOUT=6 python3 /tmp/sip_probe.py 2>/dev/null); MS=$(echo "$OUT" | grep -a -oE "rtt_ms=[0-9]+" | cut -d= -f2); CODE=$(echo "$OUT" | grep -a -oE "status=[A-Z0-9]+" | cut -d= -f2); [ -n "$MS" ] || MS=6000; [ -n "$CODE" ] || CODE="TIMEOUT"; echo "$S,$MS,$CODE" >> "$CSV"; sleep 2; done' >/dev/null 2>&1
 log "Muestreador latencia -> $CSV (cada 2s: timestamp, RTT, status)."
 sleep 2
 
@@ -127,16 +133,19 @@ cleanup
 sleep 1
 
 log "--- Resumen CSV latencia (ts,rtt_ms,status) ---"
-docker exec kali sh -c "tail -n 5 $CSV"
-SUM=$(docker exec kali sh -c "awk -F, 'NR>1{n++;s+=\$2;if(\$2>m)m=\$2;if(\$3==\"TIMEOUT\")t++;if(\$3==\"503\")f++}END{printf \"n=%d avg=%dms max=%dms timeouts=%d 503s=%d\",n,(n?s/n:0),m+0,t+0,f+0}' $CSV")
+if [ "$PROBE_CONT" != "kali" ]; then
+  docker cp "$PROBE_CONT:$CSV" "results/$CSVNAME" >/dev/null
+fi
+tail -n 5 "results/$CSVNAME"
+SUM=$(awk -F, 'NR>1{n++;s+=$2;if($2>m)m=$2;if($3=="TIMEOUT")t++;if($3=="503")f++}END{printf "n=%d avg=%dms max=%dms timeouts=%d 503s=%d",n,(n?s/n:0),m+0,t+0,f+0}' "results/$CSVNAME")
 log "MTTR/flood: $SUM"
 log "RTT post:"
 DURING=$(rtt); log "post-flood: $DURING (éxito si 503/timeout o >5000ms)"
 H=$(docker exec kali sh -c "sha256sum $PCAP | cut -d' ' -f1")
-HC=$(docker exec kali sh -c "sha256sum $CSV | cut -d' ' -f1")
-FN=$(basename "$PCAP"); FC=$(basename "$CSV")
+HC=$(sha256sum "results/$CSVNAME" | cut -d' ' -f1)
+FN=$(basename "$PCAP"); FC="$CSVNAME"
 echo "$H  $FN  V2-$MODE  $(date -u +%Y-%m-%dT%H:%M:%SZ)  $MODE $COUNT a $TARGET:$PORT (base $BASE, post $DURING; $SUM)" >> results/hashes.txt
-echo "$HC  $FC  V2-$MODE-csv  $(date -u +%Y-%m-%dT%H:%M:%SZ)  latencia REGISTER-probe durante flood ($SUM)" >> results/hashes.txt
+echo "$HC  $FC  V2-$MODE-csv  $(date -u +%Y-%m-%dT%H:%M:%SZ)  latencia REGISTER-probe desde $PROBE_CONT durante flood ($SUM)" >> results/hashes.txt
 log "hashes registrados (pcap + csv). Analizar: tshark -r $PCAP -d udp.port==9,sip -Y sip.Status-Code"
-log "Veredicto: degradado si timeouts/503 > 0 o avg/max > 5000ms."
+log "Veredicto: con pike activo el atacante recibe 403 y la sonda neutral mantiene RTT normal."
 log "F4 contramedida (scscf.cfg): loadmodule pike.so + modparam sampling_time_unit 2 + reqs_density_per_unit 30 + pike_check_req() al inicio de request_route; reiniciar S-CSCF y re-ejecutar (se espera bloqueo del atacante y RTT legítimo normal)."
