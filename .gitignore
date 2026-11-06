@@ -1,17 +1,22 @@
-# Resultados y capturas de laboratorio (regenerables)
-voLTE-lab/results/
-*.pcapng
-*.pcap
-*.wav
-
-# Temporales del laboratorio
-voLTE-lab/.lab-tmp/
+# --- Runtime / generado por el laboratorio ---
 .lab-tmp/
-*.tmp
+voLTE-lab/.lab-tmp/
+voLTE-lab/captures/
+voLTE-lab/reports/
+voLTE-lab/kamailio/tls/
+voLTE-lab/srsran/baresip-config/tls.crt
+voLTE-lab/pyhss/docker/.env
 
-# Python
-__pycache__/
+# --- Python ---
+**/__pycache__/
 *.pyc
+*.pyo
 
-# Entornos / secretos locales
-*.env.local
+# --- Presentación / media (se guarda fuera del repo) ---
+presentacion/
+*.mp4
+*.zip
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db

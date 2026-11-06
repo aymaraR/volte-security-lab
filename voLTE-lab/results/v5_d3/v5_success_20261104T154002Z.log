@@ -1,0 +1,21 @@
+﻿V5 ROGUE eNodeB - EVIDENCIA DE ATAQUE EFECTIVO
+timestamp=20261104T154002Z
+Mecanismo: takeover ZMQ, eNB1 detenido, rogue PCI=7 cell_id=0x09, UE1 reiniciado como proceso (sin restart de contenedor), eNB2 detenido para evitar interferencia.
+
+UE:
+Found Cell:  Mode=FDD, PCI=7, PRB=50, Ports=1, CP=Normal, CFO=-0.2 KHz Network attach successful. IP: 10.45.0.8
+
+MME:
+
+[32m11/04 15:33:47.160[0m: [[33memm[0m] [1;32mINFO[0m: [001010123456789] Attach complete 
+(../src/mme/emm-sm.c:1603)
+[32m11/04 15:40:02.357[0m: [[33memm[0m] [1;32mINFO[0m: [001010123456789] Attach complete 
+(../src/mme/emm-sm.c:1603)
+
+
+
+
+Rogue eNB (extracto):
+ Built in Release mode using commit bef8680d5 on branch master.  Opening 1 channels in RF device=zmq with args=fail_on_disconnect=true,tx_port0=tcp://*:2000,rx_port0=tcp://172.20.0.5:2001,id=enb,base_srate=23.04e6 Supported RF device list: zmq file CHx base_srate=23.04e6 CHx id=enb Current sample rate is 1.92 MHz with a base rate of 23.04 MHz (x12 decimation) CH0 rx_port=tcp://172.20.0.5:2001 CH0 tx_port=tcp://*:2000 CH0 fail_on_disconnect=true  ==== eNodeB started === Type <t> to view trace Current sample rate is 11.52 MHz with a base rate of 23.04 MHz (x2 decimation) Current sample rate is 11.52 MHz with a base rate of 23.04 MHz (x2 decimation) Setting frequency: DL=2680.0 Mhz, UL=2560.0 MHz for cc_idx=0 nof_prb=50 Closing stdin thread. RACH:  tti=1301, cc=0, pci=7, preamble=42, offset=0, temp_crnti=0x46 User 0x46 connected
+
+Veredicto: VULNERABLE - el UE se sincronizo con PCI=7 y completo attach por la celda falsa.

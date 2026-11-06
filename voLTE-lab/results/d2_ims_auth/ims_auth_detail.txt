@@ -1,0 +1,456 @@
+Frame 5: Packet, 910 bytes on wire (7280 bits), 910 bytes captured (7280 bits)
+    Encapsulation type: Linux cooked-mode capture v2 (210)
+    Arrival Time: Nov  4, 2026 06:37:39.553962000 UTC
+    UTC Arrival Time: Nov  4, 2026 06:37:39.553962000 UTC
+    Epoch Arrival Time: 1793774259.553962000
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 2.062833000 seconds]
+    [Time since reference or first frame: 2.323817000 seconds]
+    Frame Number: 5
+    Frame Length: 910 bytes (7280 bits)
+    Capture Length: 910 bytes (7280 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: sll:ethertype:ip:udp:sip]
+    Character encoding: ASCII (0)
+Linux cooked capture v2
+    Protocol: IPv4 (0x0800)
+    Reserved: 0000
+    Interface index: 1
+    Link-layer address type: Loopback (772)
+    Packet type: Unicast to us (0)
+    Link-layer address length: 6
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Unused: 0000
+Internet Protocol Version 4, Src: 172.20.0.6, Dst: 172.20.0.6
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x10 (DSCP: Unknown, ECN: Not-ECT)
+        0001 00.. = Differentiated Services Codepoint: Unknown (4)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 890
+    Identification: 0xe246 (57926)
+    000. .... = Flags: 0x0
+        0... .... = Reserved bit: Not set
+        .0.. .... = Don't fragment: Not set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x3ce8 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 172.20.0.6
+    Destination Address: 172.20.0.6
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 5060, Dst Port: 6060
+    Source Port: 5060
+    Destination Port: 6060
+    Length: 870
+    Checksum: 0x5bac [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 5]
+    [Timestamps]
+        [Time since first frame: 2.323817000 seconds]
+        [Time since previous frame: 2.062833000 seconds]
+    UDP payload (862 bytes)
+Session Initiation Protocol (REGISTER)
+    Request-Line: REGISTER sip:ims.mnc070.mcc999.3gppnetwork.org;transport=tls SIP/2.0
+        Method: REGISTER
+        Request-URI: sip:ims.mnc070.mcc999.3gppnetwork.org;transport=tls
+            Request-URI Host Part: ims.mnc070.mcc999.3gppnetwork.org
+        [Resent Packet: False]
+    Message Header
+        Via: SIP/2.0/UDP 172.20.0.6;branch=z9hG4bK40e6.80a582c8bf1b09cce5d1571ed91046d9.0
+            Transport: UDP
+            Sent-by Address: 172.20.0.6
+            Branch: z9hG4bK40e6.80a582c8bf1b09cce5d1571ed91046d9.0
+        Via: SIP/2.0/UDP 172.20.0.6:4060;branch=z9hG4bK40e6.b13408f80ab81130f507ef78fb4fb452.0;i=4
+            Transport: UDP
+            Sent-by Address: 172.20.0.6
+            Sent-by port: 4060
+            Branch: z9hG4bK40e6.b13408f80ab81130f507ef78fb4fb452.0
+            i=4
+        Via: SIP/2.0/TLS 172.20.0.5:46055;received=172.20.0.5;branch=z9hG4bKdad3e4791251e6b1;rport=57934
+            Transport: TLS
+            Sent-by Address: 172.20.0.5
+            Sent-by port: 46055
+            Received: 172.20.0.5
+            Branch: z9hG4bKdad3e4791251e6b1
+            RPort: 57934
+        Contact: <sip:1001-0x5e9ace026f00@172.20.0.5:46055;transport=tls>;expires=3600;+sip.instance="<urn:uuid:017ac253-1f2e-099c-97e5-4a88ee0dc13d>"
+            Contact URI: sip:1001-0x5e9ace026f00@172.20.0.5:46055;transport=tls
+                Contact URI User Part: 1001-0x5e9ace026f00
+                Contact URI Host Part: 172.20.0.5
+                Contact URI Host Port: 46055
+                Contact URI parameter: transport=tls
+            Contact parameter: expires=3600
+            Contact parameter: +sip.instance="<urn:uuid:017ac253-1f2e-099c-97e5-4a88ee0dc13d>"\r\n
+        Max-Forwards: 68
+        Route: <sip:172.20.0.6:5061;transport=tls;lr>
+            Route URI: sip:172.20.0.6:5061;transport=tls;lr
+                Route Host Part: 172.20.0.6
+                Route Host Port: 5061
+                Route URI parameter: transport=tls
+                Route URI parameter: lr
+        To: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org>
+            SIP to address: sip:1001@ims.mnc070.mcc999.3gppnetwork.org
+                SIP to address User Part: 1001
+                SIP to address Host Part: ims.mnc070.mcc999.3gppnetwork.org
+        From: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org>;tag=afc232d803622a02
+            SIP from address: sip:1001@ims.mnc070.mcc999.3gppnetwork.org
+                SIP from address User Part: 1001
+                SIP from address Host Part: ims.mnc070.mcc999.3gppnetwork.org
+            SIP from tag: afc232d803622a02
+        Call-ID: 6b521f1d88a55e3e
+        [Generated Call-ID: 6b521f1d88a55e3e]
+        CSeq: 25088 REGISTER
+            Sequence Number: 25088
+            Method: REGISTER
+        User-Agent: baresip v1.0.0 (x86_64/linux)
+        Allow: INVITE,ACK,BYE,CANCEL,OPTIONS,NOTIFY,SUBSCRIBE,INFO,MESSAGE,REFER
+        Content-Length: 0
+
+Frame 6: Packet, 785 bytes on wire (6280 bits), 785 bytes captured (6280 bits)
+    Encapsulation type: Linux cooked-mode capture v2 (210)
+    Arrival Time: Nov  4, 2026 06:37:39.679968000 UTC
+    UTC Arrival Time: Nov  4, 2026 06:37:39.679968000 UTC
+    Epoch Arrival Time: 1793774259.679968000
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 126.006000 milliseconds]
+    [Time delta from previous displayed frame: 126.006000 milliseconds]
+    [Time since reference or first frame: 2.449823000 seconds]
+    Frame Number: 6
+    Frame Length: 785 bytes (6280 bits)
+    Capture Length: 785 bytes (6280 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: sll:ethertype:ip:udp:sip]
+    Character encoding: ASCII (0)
+Linux cooked capture v2
+    Protocol: IPv4 (0x0800)
+    Reserved: 0000
+    Interface index: 1
+    Link-layer address type: Loopback (772)
+    Packet type: Unicast to us (0)
+    Link-layer address length: 6
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Unused: 0000
+Internet Protocol Version 4, Src: 172.20.0.6, Dst: 172.20.0.6
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x10 (DSCP: Unknown, ECN: Not-ECT)
+        0001 00.. = Differentiated Services Codepoint: Unknown (4)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 765
+    Identification: 0xe255 (57941)
+    000. .... = Flags: 0x0
+        0... .... = Reserved bit: Not set
+        .0.. .... = Don't fragment: Not set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x3d56 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 172.20.0.6
+    Destination Address: 172.20.0.6
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 6060, Dst Port: 5060
+    Source Port: 6060
+    Destination Port: 5060
+    Length: 745
+    Checksum: 0x5b2f [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 6]
+    [Timestamps]
+        [Time since first frame: 2.449823000 seconds]
+        [Time since previous frame: 126.006000 milliseconds]
+    UDP payload (737 bytes)
+Session Initiation Protocol (401)
+    Status-Line: SIP/2.0 401 Unauthorized - Challenging the UE
+        Status-Code: 401
+        [Resent Packet: False]
+        [Request Frame: 5]
+        [Response Time (ms): 126]
+    Message Header
+        Via: SIP/2.0/UDP 172.20.0.6;branch=z9hG4bK40e6.80a582c8bf1b09cce5d1571ed91046d9.0
+            Transport: UDP
+            Sent-by Address: 172.20.0.6
+            Branch: z9hG4bK40e6.80a582c8bf1b09cce5d1571ed91046d9.0
+        Via: SIP/2.0/UDP 172.20.0.6:4060;branch=z9hG4bK40e6.b13408f80ab81130f507ef78fb4fb452.0;i=4
+            Transport: UDP
+            Sent-by Address: 172.20.0.6
+            Sent-by port: 4060
+            Branch: z9hG4bK40e6.b13408f80ab81130f507ef78fb4fb452.0
+            i=4
+        Via: SIP/2.0/TLS 172.20.0.5:46055;received=172.20.0.5;branch=z9hG4bKdad3e4791251e6b1;rport=57934
+            Transport: TLS
+            Sent-by Address: 172.20.0.5
+            Sent-by port: 46055
+            Received: 172.20.0.5
+            Branch: z9hG4bKdad3e4791251e6b1
+            RPort: 57934
+        To: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org>;tag=2aac8e0f6bcb09d83ca5c7085cdfd527-cc280000
+            SIP to address: sip:1001@ims.mnc070.mcc999.3gppnetwork.org
+                SIP to address User Part: 1001
+                SIP to address Host Part: ims.mnc070.mcc999.3gppnetwork.org
+            SIP to tag: 2aac8e0f6bcb09d83ca5c7085cdfd527-cc280000
+        From: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org>;tag=afc232d803622a02
+            SIP from address: sip:1001@ims.mnc070.mcc999.3gppnetwork.org
+                SIP from address User Part: 1001
+                SIP from address Host Part: ims.mnc070.mcc999.3gppnetwork.org
+            SIP from tag: afc232d803622a02
+        Call-ID: 6b521f1d88a55e3e
+        [Generated Call-ID: 6b521f1d88a55e3e]
+        CSeq: 25088 REGISTER
+            Sequence Number: 25088
+            Method: REGISTER
+        WWW-Authenticate: Digest realm="ims.mnc070.mcc999.3gppnetwork.org", nonce="f726a5c7f73644a281bb98a262b99dcf", algorithm=MD5, qop="auth"
+            Authentication Scheme: Digest
+            Realm: "ims.mnc070.mcc999.3gppnetwork.org"
+            Nonce Value: "f726a5c7f73644a281bb98a262b99dcf"
+            Algorithm: MD5
+            QOP: "auth"
+        Server: kamailio (5.8.8 (x86_64/linux))
+        Content-Length: 0
+
+Frame 7: Packet, 1233 bytes on wire (9864 bits), 1233 bytes captured (9864 bits)
+    Encapsulation type: Linux cooked-mode capture v2 (210)
+    Arrival Time: Nov  4, 2026 06:37:39.683198000 UTC
+    UTC Arrival Time: Nov  4, 2026 06:37:39.683198000 UTC
+    Epoch Arrival Time: 1793774259.683198000
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 3.230000 milliseconds]
+    [Time delta from previous displayed frame: 3.230000 milliseconds]
+    [Time since reference or first frame: 2.453053000 seconds]
+    Frame Number: 7
+    Frame Length: 1233 bytes (9864 bits)
+    Capture Length: 1233 bytes (9864 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: sll:ethertype:ip:udp:sip]
+    Character encoding: ASCII (0)
+Linux cooked capture v2
+    Protocol: IPv4 (0x0800)
+    Reserved: 0000
+    Interface index: 1
+    Link-layer address type: Loopback (772)
+    Packet type: Unicast to us (0)
+    Link-layer address length: 6
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Unused: 0000
+Internet Protocol Version 4, Src: 172.20.0.6, Dst: 172.20.0.6
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x10 (DSCP: Unknown, ECN: Not-ECT)
+        0001 00.. = Differentiated Services Codepoint: Unknown (4)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 1213
+    Identification: 0xe258 (57944)
+    000. .... = Flags: 0x0
+        0... .... = Reserved bit: Not set
+        .0.. .... = Don't fragment: Not set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x3b93 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 172.20.0.6
+    Destination Address: 172.20.0.6
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 5060, Dst Port: 6060
+    Source Port: 5060
+    Destination Port: 6060
+    Length: 1193
+    Checksum: 0x5cef [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 7]
+    [Timestamps]
+        [Time since first frame: 2.453053000 seconds]
+        [Time since previous frame: 3.230000 milliseconds]
+    UDP payload (1185 bytes)
+Session Initiation Protocol (REGISTER)
+    Request-Line: REGISTER sip:ims.mnc070.mcc999.3gppnetwork.org;transport=tls SIP/2.0
+        Method: REGISTER
+        Request-URI: sip:ims.mnc070.mcc999.3gppnetwork.org;transport=tls
+            Request-URI Host Part: ims.mnc070.mcc999.3gppnetwork.org
+        [Resent Packet: False]
+    Message Header
+        Via: SIP/2.0/UDP 172.20.0.6;branch=z9hG4bK30e6.2836faf95d5ee5bedf39ed694daabf28.0
+            Transport: UDP
+            Sent-by Address: 172.20.0.6
+            Branch: z9hG4bK30e6.2836faf95d5ee5bedf39ed694daabf28.0
+        Via: SIP/2.0/UDP 172.20.0.6:4060;branch=z9hG4bK30e6.51d5050c561b79b47918ed238b3c267c.0;i=4
+            Transport: UDP
+            Sent-by Address: 172.20.0.6
+            Sent-by port: 4060
+            Branch: z9hG4bK30e6.51d5050c561b79b47918ed238b3c267c.0
+            i=4
+        Via: SIP/2.0/TLS 172.20.0.5:46055;received=172.20.0.5;branch=z9hG4bKc313af571176601c;rport=57934
+            Transport: TLS
+            Sent-by Address: 172.20.0.5
+            Sent-by port: 46055
+            Received: 172.20.0.5
+            Branch: z9hG4bKc313af571176601c
+            RPort: 57934
+        Contact: <sip:1001-0x5e9ace026f00@172.20.0.5:46055;transport=tls>;expires=3600;+sip.instance="<urn:uuid:017ac253-1f2e-099c-97e5-4a88ee0dc13d>"
+            Contact URI: sip:1001-0x5e9ace026f00@172.20.0.5:46055;transport=tls
+                Contact URI User Part: 1001-0x5e9ace026f00
+                Contact URI Host Part: 172.20.0.5
+                Contact URI Host Port: 46055
+                Contact URI parameter: transport=tls
+            Contact parameter: expires=3600
+            Contact parameter: +sip.instance="<urn:uuid:017ac253-1f2e-099c-97e5-4a88ee0dc13d>"\r\n
+        Max-Forwards: 68
+        Authorization [???]: Digest username="001010123456789@ims.mnc070.mcc999.3gppnetwork.org", realm="ims.mnc070.mcc999.3gppnetwork.org", nonce="f726a5c7f73644a281bb98a262b99dcf", uri="sip:ims.mnc070.mcc999.3gppnetwork.org;transport=tls", respo
+            Authentication Scheme: Digest
+            Username: "001010123456789@ims.mnc070.mcc999.3gppnetwork.org"
+            Realm: "ims.mnc070.mcc999.3gppnetwork.org"
+            Nonce Value: "f726a5c7f73644a281bb98a262b99dcf"
+            Authentication URI: "sip:ims.mnc070.mcc999.3gppnetwork.org;transport=tls"
+            Digest Authentication Response: "436cfbff39d9e4916b19e7f8fcbcfe18"
+            CNonce Value: "b7e8a4bf4e9dbd28"
+            QOP: auth
+            Nonce Count: 00000001
+        Route: <sip:172.20.0.6:5061;transport=tls;lr>
+            Route URI: sip:172.20.0.6:5061;transport=tls;lr
+                Route Host Part: 172.20.0.6
+                Route Host Port: 5061
+                Route URI parameter: transport=tls
+                Route URI parameter: lr
+        To: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org>
+            SIP to address: sip:1001@ims.mnc070.mcc999.3gppnetwork.org
+                SIP to address User Part: 1001
+                SIP to address Host Part: ims.mnc070.mcc999.3gppnetwork.org
+        From: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org>;tag=afc232d803622a02
+            SIP from address: sip:1001@ims.mnc070.mcc999.3gppnetwork.org
+                SIP from address User Part: 1001
+                SIP from address Host Part: ims.mnc070.mcc999.3gppnetwork.org
+            SIP from tag: afc232d803622a02
+        Call-ID: 6b521f1d88a55e3e
+        [Generated Call-ID: 6b521f1d88a55e3e]
+        CSeq: 25089 REGISTER
+            Sequence Number: 25089
+            Method: REGISTER
+        User-Agent: baresip v1.0.0 (x86_64/linux)
+        Allow: INVITE,ACK,BYE,CANCEL,OPTIONS,NOTIFY,SUBSCRIBE,INFO,MESSAGE,REFER
+        Content-Length: 0
+
+Frame 8: Packet, 969 bytes on wire (7752 bits), 969 bytes captured (7752 bits)
+    Encapsulation type: Linux cooked-mode capture v2 (210)
+    Arrival Time: Nov  4, 2026 06:37:39.806587000 UTC
+    UTC Arrival Time: Nov  4, 2026 06:37:39.806587000 UTC
+    Epoch Arrival Time: 1793774259.806587000
+    [Time shift for this packet: 0.000000000 seconds]
+    [Time delta from previous captured frame: 123.389000 milliseconds]
+    [Time delta from previous displayed frame: 123.389000 milliseconds]
+    [Time since reference or first frame: 2.576442000 seconds]
+    Frame Number: 8
+    Frame Length: 969 bytes (7752 bits)
+    Capture Length: 969 bytes (7752 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: sll:ethertype:ip:udp:sip]
+    Character encoding: ASCII (0)
+Linux cooked capture v2
+    Protocol: IPv4 (0x0800)
+    Reserved: 0000
+    Interface index: 1
+    Link-layer address type: Loopback (772)
+    Packet type: Unicast to us (0)
+    Link-layer address length: 6
+    Source: 00:00:00_00:00:00 (00:00:00:00:00:00)
+    Unused: 0000
+Internet Protocol Version 4, Src: 172.20.0.6, Dst: 172.20.0.6
+    0100 .... = Version: 4
+    .... 0101 = Header Length: 20 bytes (5)
+    Differentiated Services Field: 0x10 (DSCP: Unknown, ECN: Not-ECT)
+        0001 00.. = Differentiated Services Codepoint: Unknown (4)
+        .... ..00 = Explicit Congestion Notification: Not ECN-Capable Transport (0)
+    Total Length: 949
+    Identification: 0xe261 (57953)
+    000. .... = Flags: 0x0
+        0... .... = Reserved bit: Not set
+        .0.. .... = Don't fragment: Not set
+        ..0. .... = More fragments: Not set
+    ...0 0000 0000 0000 = Fragment Offset: 0
+    Time to Live: 64
+    Protocol: UDP (17)
+    Header Checksum: 0x3c92 [validation disabled]
+    [Header checksum status: Unverified]
+    Source Address: 172.20.0.6
+    Destination Address: 172.20.0.6
+    [Stream index: 0]
+User Datagram Protocol, Src Port: 6060, Dst Port: 5060
+    Source Port: 6060
+    Destination Port: 5060
+    Length: 929
+    Checksum: 0x5be7 [unverified]
+    [Checksum Status: Unverified]
+    [Stream index: 0]
+    [Stream Packet Number: 8]
+    [Timestamps]
+        [Time since first frame: 2.576442000 seconds]
+        [Time since previous frame: 123.389000 milliseconds]
+    UDP payload (921 bytes)
+Session Initiation Protocol (200)
+    Status-Line: SIP/2.0 200 OK
+        Status-Code: 200
+        [Resent Packet: False]
+        [Request Frame: 7]
+        [Response Time (ms): 123]
+    Message Header
+        Via: SIP/2.0/UDP 172.20.0.6;branch=z9hG4bK30e6.2836faf95d5ee5bedf39ed694daabf28.0
+            Transport: UDP
+            Sent-by Address: 172.20.0.6
+            Branch: z9hG4bK30e6.2836faf95d5ee5bedf39ed694daabf28.0
+        Via: SIP/2.0/UDP 172.20.0.6:4060;branch=z9hG4bK30e6.51d5050c561b79b47918ed238b3c267c.0;i=4
+            Transport: UDP
+            Sent-by Address: 172.20.0.6
+            Sent-by port: 4060
+            Branch: z9hG4bK30e6.51d5050c561b79b47918ed238b3c267c.0
+            i=4
+        Via: SIP/2.0/TLS 172.20.0.5:46055;received=172.20.0.5;branch=z9hG4bKc313af571176601c;rport=57934
+            Transport: TLS
+            Sent-by Address: 172.20.0.5
+            Sent-by port: 46055
+            Received: 172.20.0.5
+            Branch: z9hG4bKc313af571176601c
+            RPort: 57934
+        To: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org>;tag=2aac8e0f6bcb09d83ca5c7085cdfd527-cc280000
+            SIP to address: sip:1001@ims.mnc070.mcc999.3gppnetwork.org
+                SIP to address User Part: 1001
+                SIP to address Host Part: ims.mnc070.mcc999.3gppnetwork.org
+            SIP to tag: 2aac8e0f6bcb09d83ca5c7085cdfd527-cc280000
+        From: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org>;tag=afc232d803622a02
+            SIP from address: sip:1001@ims.mnc070.mcc999.3gppnetwork.org
+                SIP from address User Part: 1001
+                SIP from address Host Part: ims.mnc070.mcc999.3gppnetwork.org
+            SIP from tag: afc232d803622a02
+        Call-ID: 6b521f1d88a55e3e
+        [Generated Call-ID: 6b521f1d88a55e3e]
+        CSeq: 25089 REGISTER
+            Sequence Number: 25089
+            Method: REGISTER
+        Contact: <sip:1001-0x5e9ace026f00@172.20.0.5:46055;transport=tls>;expires=3240;+sip.instance="<urn:uuid:017ac253-1f2e-099c-97e5-4a88ee0dc13d>"
+            Contact URI: sip:1001-0x5e9ace026f00@172.20.0.5:46055;transport=tls
+                Contact URI User Part: 1001-0x5e9ace026f00
+                Contact URI Host Part: 172.20.0.5
+                Contact URI Host Port: 46055
+                Contact URI parameter: transport=tls
+            Contact parameter: expires=3240
+            Contact parameter: +sip.instance="<urn:uuid:017ac253-1f2e-099c-97e5-4a88ee0dc13d>"\r\n
+        P-Associated-URI: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org>, <tel:1001>, <sip:001010123456789@ims.mnc070.mcc999.3gppnetwork.org>
+        Service-Route: <sip:orig@scscf.ims.mnc070.mcc999.3gppnetwork.org:6060;lr>
+            Service-Route URI: sip:orig@scscf.ims.mnc070.mcc999.3gppnetwork.org:6060;lr
+                Service-Route Userinfo: orig
+                Service-Route Host Part: scscf.ims.mnc070.mcc999.3gppnetwork.org
+                Service-Route Host Port: 6060
+                Service-Route URI parameter: lr
+        Server: kamailio (5.8.8 (x86_64/linux))
+        Content-Length: 0
+

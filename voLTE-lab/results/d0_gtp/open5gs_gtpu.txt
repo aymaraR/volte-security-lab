@@ -1,0 +1,11 @@
+﻿3: ogstun    inet 10.45.0.1/16 scope global ogstun\       valid_lft forever preferred_lft forever
+3: ogstun    inet6 fe80::2bcb:f7ab:57d3:c2a0/64 scope link stable-privacy \       valid_lft forever preferred_lft forever
+3: ogstun: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UNKNOWN mode DEFAULT group default qlen 500
+    link/none 
+    RX:  bytes packets errors dropped  missed   mcast           
+         23215     258      0       0       0       0 
+    TX:  bytes packets errors dropped carrier collsns           
+         27073     263      0       0       0       0 
+UNCONN 0      0          127.0.0.4:2152       0.0.0.0:*    users:(("open5gs-smfd",pid=12,fd=17)) 
+UNCONN 0      0         172.20.0.3:2152       0.0.0.0:*    users:(("open5gs-sgwud",pid=11,fd=7)) 
+UNCONN 0      0          127.0.0.7:2152       0.0.0.0:*    users:(("open5gs-upfd",pid=16,fd=8))  

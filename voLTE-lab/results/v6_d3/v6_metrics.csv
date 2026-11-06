@@ -1,0 +1,3 @@
+run,teid,ue_ip,injected_attempts,injected_seen_enb,responses_enb,responses_upf,verdict
+vuln,0x00000002,10.45.0.5,5,5,5,5,VULNERABLE
+mit,0x00000002,10.45.0.5,5,5,0,0,MITIGADO

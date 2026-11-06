@@ -1,0 +1,14 @@
+metric,value,unit,source
+challenge_code,401,status,frame 6
+challenge_algorithm,MD5,algorithm,WWW-Authenticate frame 6
+impi,001010123456789@ims.mnc070.mcc999.3gppnetwork.org,identity,Authorization frame 7
+initial_register_to_401_ms,126.006,ms,frame 5 -> 6
+401_to_auth_register_ms,3.230,ms,frame 6 -> 7
+auth_register_to_200_ms,123.389,ms,frame 7 -> 8
+401_to_200_ms,126.619,ms,frame 6 -> 8
+register_to_200_ms,252.625,ms,frame 5 -> 8
+negative_wrong_password,401,status,baresip_negative.log
+negative_new_binding_200,0,count,ims_auth_negative.pcap (tras password incorrecta)
+valid_after_restore,200,status,baresip_valid.log
+auth_flow,401->200,,S-CSCF/PyHSS
+result,OK,,IMS authentication resolved (MD5 lab)

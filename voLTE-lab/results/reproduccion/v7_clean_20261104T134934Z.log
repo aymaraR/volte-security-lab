@@ -1,0 +1,47 @@
+D5 V7 clean reproduction 20261104T134934Z
+=== V7 mitigado (lab limpio) ===
+[v7-mit] llamada activa (PJSIP=1)
+[v7-mit] dialogo capturado: results/v7_d3/v7_mit_dialog_20261104T134934Z.pcap
+[v7-mit] dialogo: Call-ID=9a89f5dd03c20eb1 From-tag=3a19ed133c27a1b8 To-tag=019a7f35-0e13-467a-b3f9-b2e38956ffe8 CSeq=4698 RURI=sip:172.20.0.7:5061
+[v7-mit] PJSIP antes del BYE: 1
+BYE enviado sip:172.20.0.7:5061 CSeq 4698
+[v7-mit] ataque capturado: results/v7_d3/v7_mit_attack_20261104T134934Z.pcap (PJSIP 1 -> 1)
+[v7-mit] BYEs=3 200-al-BYE=0 403/481-al-BYE=3
+[v7-mit] VEREDICTO: MITIGADO (BYE en pcap + 403/481 + llamada sigue)
+=== revertir a vulnerable ===
+[revertir] archivos restaurados al estado vulnerable
+[revertir] Kamailio reiniciado (vulnerable)
+[revertir] Asterisk reiniciado (vulnerable)
+[revertir] 1001: 1001@ims.mnc070.mcc999.3gppnetwork.org: {0/UDP/v4} 200 OK (kamailio (5.8.8 (x86_64/linux))) [1 binding]
+[revertir] 1002: 1002@ims.mnc070.mcc999.3gppnetwork.org: {0/UDP/v4} 200 OK (kamailio (5.8.8 (x86_64/linux))) [1 binding]
+[revertir] revertido. Re-ejecutar V1/V2/V3/V7 para reproducir el estado vulnerable.
+=== V7 vulnerable (lab limpio) ===
+[v7-vuln] llamada activa (PJSIP=1)
+[v7-vuln] dialogo capturado: results/v7_d3/v7_vuln_dialog_20261104T135125Z.pcap
+[v7-vuln] dialogo: Call-ID=ab51d6c5cfef9692 From-tag=45ce0664e53e1004 To-tag=65e9a6b0-4035-4b95-880b-fef447e9b454 CSeq=56285 RURI=sip:172.20.0.7:5061
+[v7-vuln] PJSIP antes del BYE: 1
+BYE enviado sip:172.20.0.7:5061 CSeq 56285
+[v7-vuln] ataque capturado: results/v7_d3/v7_vuln_attack_20261104T135125Z.pcap (PJSIP 1 -> 0)
+[v7-vuln] BYEs=4 200-al-BYE=4 403/481-al-BYE=0
+[v7-vuln] VEREDICTO: VULNERABLE (BYE en pcap + 200 + llamada 1->0)
+=== restaurar mitigado + D2 ===
+[parche] certificado OK: subject=CN = pcscf.ims.mnc070.mcc999.3gppnetwork.org
+[parche] TLS: usando montajes kamailio/tls y parches/tls.cfg
+[parche] baresip parcheado: <sip:1001@ims.mnc070.mcc999.3gppnetwork.org;transport=tls>;auth_user=001010123456789@ims.mnc070.mcc999.3gppnetwork.org;auth_pass=00112233445566778899aabbccddeeff;outbound="sip:172.20.0.6:5061;transport=tls";mediaenc=srtp-mand;regint=3600
+config file ok, exiting...
+config file ok, exiting...
+[parche] sintaxis Kamailio OK (TLS + pike + htable)
+[parche] Kamailio reiniciado (65 CSCF)
+[parche] Asterisk OK: res_srtp Running + ue-endpoint media_encryption=sdes
+[parche] --- 1001 ---
+1001@ims.mnc070.mcc999.3gppnetwork.org: {0/TLS/v4} 200 OK (kamailio (5.8.8 (x86_64/linux))) [1 binding]
+[parche] --- 1002 ---
+1002@ims.mnc070.mcc999.3gppnetwork.org: {0/TLS/v4} 200 OK (kamailio (5.8.8 (x86_64/linux))) [1 binding]
+[parche] --- TLS listener ---
+LISTEN 0      1024      172.20.0.6:5061       0.0.0.0:*    users:(("kamailio",pid=942,fd=8))
+[parche] --- Asterisk registrations ---
+ scscf-reg/sip:172.20.0.6:6060                           scscf-auth                  Registered        (exp. 3203s)
+[parche] mitigaciones aplicadas. Re-ejecutar V1, V2, V3 y V7 para validar.
+--- 1001 ---
+--- 1002 ---
+=== FIN 20261104T134934Z ===

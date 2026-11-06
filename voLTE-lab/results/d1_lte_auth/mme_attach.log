@@ -1,0 +1,12 @@
+
+[32m11/04 05:58:30.167[0m: [[33memm[0m] [1;32mINFO[0m: [] Attach request (../src/mme/emm-sm.c:488)
+[32m11/04 05:58:30.581[0m: [[33memm[0m] [1;32mINFO[0m: [001010123456789] Attach complete 
+(../src/mme/emm-sm.c:1603)
+[32m11/04 05:59:45.896[0m: [[33memm[0m] [1;32mINFO[0m: [] Attach request (../src/mme/emm-sm.c:488)
+[32m11/04 05:59:46.334[0m: [[33memm[0m] [1;32mINFO[0m: [001010123456790] Attach complete 
+(../src/mme/emm-sm.c:1603)
+[32m11/04 06:03:43.314[0m: [[33memm[0m] [1;32mINFO[0m: [001010123456789] Attach request (../src/mme/emm-sm.c:488)
+[32m11/04 06:03:43.727[0m: [[33memm[0m] [1;32mINFO[0m: [001010123456789] Attach complete 
+(../src/mme/emm-sm.c:1603)
+
+

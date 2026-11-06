@@ -1,0 +1,12 @@
+mode=mit
+timestamp=20261104T131837Z
+call_id=cb99d061afd06aa3
+from_tag=245dd0254436f4ed
+to_tag=1ea4c17c-adb9-460b-bdfc-4a81e2073fbf
+cseq=55281
+ruri=sip:172.20.0.7:5061
+channels_before=1
+channels_after=1
+bye_packets=3
+bye_200=0
+bye_403_481=3

@@ -16,12 +16,13 @@
 #   (REQ/REP) se cuelgan con reinicios de solo-proceso (TIME_WAIT/wedge).
 # - 'rrc_inactivity_timer' con valores enormes ROMPE la RF de srsENB: NO tocar
 #   (se deja el default 30s).
-# - ogstun nace DOWN: hay que levantarlo (paso 13) o no hay breakout UPF.
+# - ogstun nace DOWN: hay que levantarlo ANTES del attach (paso 3) o el
+#   bearer queda sin breakout y el primer tráfico dispara Service Request.
+# - El MME rechaza Service Request (causa 9) cuando el UE ya está IDLE: por
+#   eso el keepalive ICMP arranca inmediatamente después del attach, cada 10 s,
+#   y mantiene el bearer CONNECTED. Las rutas al túnel se activan en el paso 13.
 # - baresip bindea la IP de eth0: hay que fijar sip_listen a la IP del tun
 #   (cambia en cada attach!) o el RTP/SIP no entra al túnel GTP.
-# - El MME rechaza Service Request (causa 9: srsUE pierde la GUTI): el plano
-#   de usuario solo es usable en ventana CONNECTED post-attach. El keepalive
-#   es SOLO-rutas (sin ping: el ping en IDLE acelera el detach/re-attach).
 # - Paso 12 registra por bridge (sin rutas al tun); paso 13 conmuta a túnel.
 #
 # Notas:
@@ -77,6 +78,23 @@ wait_exec_ok() {
   return 1
 }
 
+# ogstun nace DOWN en cada arranque de Open5GS. Debe estar UP ANTES del
+# attach: si el bearer se establece sin breakout, el primer tráfico dispara
+# un Service Request que el MME rechaza (causa 9) y el UE pierde la ventana
+# CONNECTED. Idempotente.
+ogstun_up() {
+  i=0
+  while [ "$i" -lt 40 ]; do
+    if docker exec open5gs sh -c 'ip link show ogstun >/dev/null 2>&1'; then
+      docker exec open5gs sh -c 'ip addr add 10.45.0.1/16 dev ogstun 2>/dev/null || true; ip link set ogstun up'
+      docker exec open5gs sh -c 'sysctl -w net.ipv4.ip_forward=1 >/dev/null 2>&1 || true'
+      return 0
+    fi
+    sleep 2; i=$((i + 2))
+  done
+  return 1
+}
+
 log "== 0/13 chequeo de imágenes =="
 need_image mongo:4.4
 need_image redis:7.0-alpine
@@ -88,6 +106,12 @@ need_image pyhss-local:latest
 # El compose referencia la imagen upstream; la etiquetamos local (sin red).
 docker tag pyhss-local:latest ghcr.io/nickvsnetworking/pyhss/pyhss:development 2>/dev/null || true
 log "imágenes OK"
+
+# Reproduccion limpia: los contenedores manuales de la celda 2 no pertenecen a
+# Compose y sobreviven a 'docker compose down'. Si quedan vivos, el MME ya
+# reporta 2 eNBs y el healthcheck del paso 8 (espera "1") falla por falso
+# negativo. Se eliminan al inicio; lab-up los recrea en el paso 9/11.
+docker rm -f srsenb2 srsue2 >/dev/null 2>&1 || true
 
 log "== 1/13 base: mongodb + redis =="
 docker compose up -d mongodb redis
@@ -127,6 +151,8 @@ T0=$(date +%s)
 docker restart open5gs
 sleep 5
 wait_log open5gs "MME initialize...done" 90 "$T0" || die "MME no inicializó (ver: docker logs open5gs)"
+ogstun_up || die "ogstun no apareció/está DOWN (ver: docker logs open5gs)"
+log "ogstun UP antes del attach (breakout UPF listo)"
 
 log "== 4/13 HSS IMS: pyhss hss/api/diameter =="
 for c in pyhss_hss pyhss_api pyhss_diameter; do docker rm -f "$c" >/dev/null 2>&1 || true; done
@@ -149,11 +175,11 @@ docker run -d --name pyhss_diameter --network volte-lab_volte-net --ip 172.20.0.
   -v volte-lab_pyhss_sqlite:/var/lib/pyhss pyhss-local:latest >/dev/null
 wait_log pyhss_diameter "Serving on" 90 "$T0" || die "pyhss_diameter no abrió 3868"
 
-log "== 5/13 provision IMS en PyHSS (1000/1001/1002, idempotente) =="
+log "== 5/13 provision IMS en PyHSS (1000/1001/1002/1003, idempotente) =="
 docker exec -i pyhss_api python3 - <<'EOF'
 import urllib.request, json
 BASE = "http://127.0.0.1:8080"
-want = {"1000": "999070000000001", "1001": "001010123456789", "1002": "001010123456790"}
+want = {"1000": "999070000000001", "1001": "001010123456789", "1002": "001010123456790", "1003": "001010123456791"}
 have = {s["msisdn"]: s for s in json.loads(urllib.request.urlopen(BASE + "/ims_subscriber/list", timeout=15).read().decode())}
 for msisdn, imsi in want.items():
     if msisdn not in have:
@@ -170,6 +196,11 @@ for msisdn, imsi in want.items():
         print("ifc_path set for", msisdn, flush=True)
 print("ims provisioning OK", flush=True)
 EOF
+
+# D2: AuC/Subscriber LTE-IMS para autenticación IMS (idempotente)
+docker exec -i pyhss_api python3 - < pyhss/provision_ims_auth.py \
+  || die "provision IMS auth falló (AuC/Subscriber)"
+log "IMS auth provisioning OK"
 
 log "== 6/13 IMS: kamailio (P:4060/I:5060/S:6060, sin puertos al host) =="
 # Contramedidas (Fase 4): certificado TLS del P-CSCF (idempotente).
@@ -283,7 +314,9 @@ cfg = "".join(l for l in (bsrc/"config").read_text().splitlines(keepends=True)
 (b2/"config").write_text(cfg)
 acc = (bsrc/"accounts").read_text()
 acc = acc.replace("1001@ims.mnc070.mcc999.3gppnetwork.org", "1002@ims.mnc070.mcc999.3gppnetwork.org")
-acc = acc.replace("999070000000002", "999070000000003").replace("ue1001pass123", "ue1002pass123")
+acc = acc.replace("001010123456789@ims.mnc070.mcc999.3gppnetwork.org",
+                  "001010123456790@ims.mnc070.mcc999.3gppnetwork.org")
+acc = acc.replace("00112233445566778899aabbccddeeff", "00112233445566778899aabbccddeef0")
 lines = [l if not (l.startswith("<sip:1002@") and "answermode" not in l) else l.rstrip() + ";answermode=auto"
          for l in acc.splitlines()]
 (b2/"accounts").write_text("\n".join(lines) + "\n")
@@ -318,22 +351,32 @@ attach_ue() {
     sleep 8
     docker exec -d "$C" sh -c "cd $D && srsue ue.conf > /tmp/$LOG 2>&1"
     if wait_log open5gs "$IMSI] Attach complete" 150 "$T0"; then
-      log "$C attached OK"; return 0
+      log "$C attached OK"
+      # Arrancar el keepalive ANTES de que expire rrc_inactivity_timer (30 s).
+      net_keepalive "$C"
+      return 0
     fi
     n=$((n + 1))
   done
   return 1
 }
 
-# Keepalive de plano de usuario: SOLO repone rutas del tun (se pierden en cada
-# re-attach). Deliberadamente SIN ping: el ping en IDLE dispara Service
-# Request (rechazado, causa 9) y acelera el detach/re-attach. Se inicia en el
-# paso 13 (fase túnel); el paso 12 los detiene para registrar por bridge.
+# Keepalive de plano de usuario: mantiene el bearer en ECM CONNECTED con ICMP
+# cada 10 s (rrc_inactivity_timer=30 s). Debe arrancar INMEDIATAMENTE tras el
+# attach; si se espera a que el UE entre en IDLE, el Service Request se
+# rechaza (causa 9). Solo hace ping por la interfaz del túnel: NO toca rutas,
+# para no interferir con el registro por bridge del paso 12.
 net_keepalive() {
+  docker exec -d "$1" sh -c 'while true; do ping -I tun_srsue -c 1 -W 1 10.45.0.1 >/dev/null 2>&1; sleep 10; done'
+}
+# Rutas IMS -> tun: se activan recién en el paso 13 (fase túnel).
+net_routes() {
   docker exec -d "$1" sh -c 'while true; do ip route add 172.20.0.6/32 dev tun_srsue 2>/dev/null; ip route add 172.20.0.7/32 dev tun_srsue 2>/dev/null; sleep 15; done'
 }
 stop_keepalive() {
-  docker exec "$1" pkill -f tun_srsue >/dev/null 2>&1 || true
+  docker exec "$1" pkill -f 'while true; do ping -I tun_srsue' >/dev/null 2>&1 || true
+  docker exec "$1" pkill -f 'ping -I tun_srsue' >/dev/null 2>&1 || true
+  docker exec "$1" pkill -f 'while true; do ip route add 172.20.0.6/32' >/dev/null 2>&1 || true
 }
 
 log "== 10/13 UE1 (IMSI ...789) =="
@@ -379,9 +422,10 @@ docker exec open5gs ip link set ogstun up
 # Retorno IMS <-> EPC.
 docker exec kamailio ip route add 10.45.0.0/24 via 172.20.0.3 2>/dev/null || true
 docker exec asterisk ip route add 10.45.0.0/24 via 172.20.0.3 2>/dev/null || true
-# Recién acá se encienden los keepalive (fase túnel).
-net_keepalive srsue
-net_keepalive srsue2
+# Recién acá se encienden las rutas al túnel (el ping keepalive ya corre desde
+# el attach y mantuvo el bearer CONNECTED durante el registro por bridge).
+net_routes srsue
+net_routes srsue2
 sleep 6
 # baresip debe bindear la IP ACTUAL del tun (cambia en cada attach).
 set_sip_listen() {

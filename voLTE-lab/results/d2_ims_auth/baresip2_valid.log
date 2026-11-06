@@ -1,0 +1,28 @@
+baresip v1.0.0 Copyright (C) 2010 - 2020 Alfred E. Heggestad et al.
+Local network address:  IPv4=eth0|172.20.0.8 
+ua: adding SIP CA: /root/.baresip/tls.crt
+[31mmain: epoll_ctl: EPOLL_CTL_ADD: fd=0 (Operation not permitted)
+[;m[31mmain: fd_listen: fd=0 flags=0x01 (Operation not permitted)
+[;m[31mmodule stdio.so: Operation not permitted
+[;maucodec: PCMU/8000/1
+aucodec: PCMA/8000/1
+aufilt: sndfile
+sndfile: saving files in /root
+ausrc: aufile
+ausrc: ausine
+medianat: stun
+medianat: turn
+medianat: ice
+mediaenc: srtp
+mediaenc: srtp-mand
+mediaenc: srtp-mandf
+[31mmodule uuid.so: Operation not permitted
+[;m1002@ims.mnc070.mcc999.3gppnetwork.org: Using media encryption 'srtp-mand'
+Populated 1 account
+Populated 0 contacts
+Populated 2 audio codecs
+Populated 1 audio filter
+Populated 0 video codecs
+Populated 0 video filters
+baresip is ready.
+1002@ims.mnc070.mcc999.3gppnetwork.org: {0/TLS/v4} 200 OK (kamailio (5.8.8 (x86_64/linux))) [1 binding]

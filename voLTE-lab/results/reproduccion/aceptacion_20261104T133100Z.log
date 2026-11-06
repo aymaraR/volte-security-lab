@@ -1,0 +1,21 @@
+[OK] contenedor srsue
+[OK] contenedor srsue2
+[OK] contenedor srsenb
+[OK] contenedor srsenb2
+[OK] contenedor open5gs
+[OK] contenedor kamailio
+[OK] contenedor asterisk
+[OK] contenedor pyhss_hss
+[OK] contenedor pyhss_api
+[OK] contenedor pyhss_diameter
+[OK] srsue tun=10.45.0.2
+[OK] srsue2 tun=10.45.0.3
+[OK] srsue ping 0% loss
+[OK] srsue2 ping 0% loss
+[OK] UE1 ruta IMS por tunel
+[OK] 1001 REGISTER 200
+[OK] 1002 REGISTER 200
+[OK] Asterisk registrado
+[OK] Open5GS sin No Bearer/Attach Reject
+[OK] integridad 1 lineas
+ACEPTACION: PASS

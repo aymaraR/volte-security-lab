@@ -1,0 +1,9 @@
+mode=vuln
+timestamp=20261104T142318Z
+teid=0x00000002
+ue_ip=10.45.0.5
+injected_attempts=5
+injected_seen_enb=5
+responses_enb=5
+responses_upf=5
+verdict=VULNERABLE

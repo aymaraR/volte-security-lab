@@ -23,9 +23,19 @@ ask() {
 }
 mkdir -p results .lab-tmp/rogue-enb; touch results/hashes.txt 2>/dev/null || true
 
-RESTORE=$(ask RESTORE "Restaurar eNB legítimo al final? (yes/no)" "yes")
-ROGUE_PCI=$(ask ROGUE_PCI "PCI de la celda falsa" "7")
-ROGUE_CELL=$(ask ROGUE_CELL "cell_id falsa (hex, ej 0x09)" "0x09")
+# La celda 2 interfiere con la sincronizacion del UE1 durante el takeover.
+# Se apaga para la prueba; al terminar, re-ejecutar lab-up o restaurar eNB2/UE2.
+if [ "${STOP_ENB2:-yes}" = "yes" ]; then
+  docker stop srsenb2 srsue2 >/dev/null 2>&1 || true
+  log "eNB2/UE2 detenidos para evitar interferencia (STOP_ENB2=no para omitir)"
+fi
+
+RESTORE=${RESTORE:-}
+ROGUE_PCI=${ROGUE_PCI:-}
+ROGUE_CELL=${ROGUE_CELL:-}
+[ -n "$RESTORE" ] || RESTORE=$(ask RESTORE "Restaurar eNB legítimo al final? (yes/no)" "yes")
+[ -n "$ROGUE_PCI" ] || ROGUE_PCI=$(ask ROGUE_PCI "PCI de la celda falsa" "7")
+[ -n "$ROGUE_CELL" ] || ROGUE_CELL=$(ask ROGUE_CELL "cell_id falsa (hex, ej 0x09)" "0x09")
 TS=$(date -u +%Y%m%dT%H%M%SZ)
 EVID="results/v5_rogue_$TS.log"
 : > "$EVID"
@@ -38,8 +48,8 @@ restore_legit() {
   sleep 60
   docker exec -d srsenb sh -c "cd /root/enb-config && srsenb enb.conf > /tmp/enb.log 2>&1"
   sleep 20
-  docker restart srsue >/dev/null 2>&1 || true
-  sleep 8
+  docker exec srsue sh -c "pkill -9 -f 'srsue ue.conf' 2>/dev/null || true"
+  sleep 2
   docker exec -d srsue sh -c "cd /root/ue-config && srsue ue.conf > /tmp/ue.log 2>&1"
   sleep 60
   RESTORED=yes
@@ -63,8 +73,8 @@ docker exec srsenb pkill -x srsenb >/dev/null 2>&1 || true
 sleep 60
 docker exec -d srsenb sh -c "cd /root/rogue-enb && srsenb enb.conf > /tmp/enb-rogue.log 2>&1"
 sleep 20
-docker restart srsue >/dev/null 2>&1 || true
-sleep 8
+docker exec srsue sh -c "pkill -9 -f 'srsue ue.conf' 2>/dev/null || true"
+sleep 2
 docker exec -d srsue sh -c "cd /root/ue-config && srsue ue.conf > /tmp/ue.log 2>&1"
 sleep 70
 log "--- UE tras rogue (attach?) ---" | tee -a "$EVID"
@@ -77,10 +87,17 @@ echo "$NOW" >> "$EVID"
 H=$(sha256sum "$EVID" | cut -d' ' -f1)
 echo "$H  $(basename "$EVID")  V5  $(date -u +%Y-%m-%dT%H:%M:%SZ)  rogue PCI $ROGUE_PCI cell $ROGUE_CELL" >> results/hashes.txt
 log "hash registrado: $EVID"
-case "$NOW" in
-  *"$ROGUE_PCI"*|*"0x19b09"*|*"CellID"*) log "VEREDICTO: UE atraído por celda falsa si CellID/PCI difiere del legítimo (legítimo PCI 1 / verificar arriba)." ;;
-  *) log "VEREDICTO: revisar manual (comparar CellID antes/después en $EVID)." ;;
-esac
+UE_AFTER=$(docker exec srsue sh -c "strings /tmp/ue.log | grep -a -E 'Found Cell|attach successful' | tail -n 2" || true)
+echo "$UE_AFTER" >> "$EVID"
+echo "--- rogue PCI=$ROGUE_PCI cell=$ROGUE_CELL TS=$TS ---" >> "$EVID"
+echo "$NOW" >> "$EVID"
+if printf '%s\n' "$UE_AFTER" | grep -q "PCI=$ROGUE_PCI"; then
+  log "VEREDICTO: VULNERABLE - UE sincronizado con PCI=$ROGUE_PCI"
+  echo "VEREDICTO=VULNERABLE" >> "$EVID"
+else
+  log "VEREDICTO: NO REPRODUCIBLE - el UE no adquirio PCI=$ROGUE_PCI"
+  echo "VEREDICTO=NO_REPRODUCIBLE" >> "$EVID"
+fi
 
 if [ "$RESTORE" = "yes" ]; then
   trap - INT TERM

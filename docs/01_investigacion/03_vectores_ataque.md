@@ -94,13 +94,13 @@ Estado de cada familia frente al laboratorio `voLTE-lab` (detalle y evidencias c
 
 | Familia teórica | Vector del lab | Resultado |
 |---|---|---|
-| Intercepción SIP/SDP, ataques sobre RTP | V1 | Vulnerable (SDP en claro, audio reconstruido) |
-| REGISTER/INVITE Flood, transaction exhaustion | V2 | Degradación real solo en REGISTER flood contra S-CSCF |
-| P-Asserted-Identity spoofing | V3 | Vulnerable (sin 403) |
-| Cifrado nulo EEA0 | V4 | Bloqueado (plano GTP inestable, sin tráfico que capturar) |
-| Rogue eNodeB / fake base station | V5 | Ejecutado, UE no atraído en ventana de observación |
-| GTP-U injection | V6 | Bloqueado (sin TEID válido) |
-| SIP BYE/CANCEL forjado | V7 | Vulnerable (BYE con RURI del contacto remoto termina la llamada `1->0`) |
+| Intercepción SIP/SDP, ataques sobre RTP | V1 | Vulnerable en claro; MITIGADO con TLS (Gm) + SRTP/SDES |
+| REGISTER/INVITE Flood, transaction exhaustion | V2 | Degradación real en REGISTER flood; MITIGADO con `pike` |
+| P-Asserted-Identity spoofing | V3 | Vulnerable sin 403; MITIGADO con binding IMPU<->origen (403) |
+| Cifrado nulo EEA0 | V4 | Sustituido por V7 (solicitud de la empresa) |
+| Rogue eNodeB / fake base station | V5 | Vulnerable condicionado: PCI 7 + attach OK (sensible a ZMQ) |
+| GTP-U injection | V6 | Vulnerable/Mitigado: 5 inyecciones, 0 respuestas tras filtro |
+| SIP BYE/CANCEL forjado | V7 | Vulnerable (1->0); MITIGADO con binding+TLS (llamada en pie) |
 
 ## 9. Referencias Académicas
 

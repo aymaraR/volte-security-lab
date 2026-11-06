@@ -8,15 +8,15 @@
 
 | Vector | Veredicto | Evidencia en `voLTE-lab/results/` |
 |---|---|---|
-| V1 Intercepción SIP/SDP | Vulnerable (SDP en claro, sin TLS) | `v1_mitm_sip_*.pcapng`, `v1_audio_*.wav` |
-| V2 DoS IMS | Degradación real en REGISTER flood (avg 6-9x, 1 timeout); INVITE/txn absorbidos | `v2_{invite,register,txn}_*` (6 pcap + 6 csv) |
-| V3 Suplantación | Vulnerable (INVITE forjado contestado, sin 403) | `v3_spoof_1001-to-1002.pcapng` |
-| V4 Cifrado radio | Bloqueado (sin tráfico GTP que capturar) | ver causa raíz en `voLTE-lab/kali.md` |
-| V5 Rogue eNodeB | Ejecutado, UE no atraído en ventana (2 corridas) | `v5_rogue_*.log` |
-| V6 GTP-U Injection | Bloqueado (sin TEID válido, código 2 explícito) | ver causa raíz en `voLTE-lab/kali.md` |
-| V7 BYE forjado | Vulnerable (llamada terminada, `1->0` canales) | `v7_bye_1001-to-1000_*.pcapng` |
+| V1 Intercepción SIP/SDP | VULNERABLE (baseline) / MITIGADO con TLS+SRTP (0 INVITE/SDP en claro, media cifrada) | `v1_mitm_sip_*.pcapng`, `v1_audio_*.wav` |
+| V2 DoS IMS | DEGRADACIÓN real en REGISTER flood (avg 6-9x, 1 timeout) / MITIGADO con pike (atacante 403, sonda neutral normal) | `v2_register_3000_*.{pcapng,csv}` |
+| V3 Suplantación | VULNERABLE (baseline) / MITIGADO con binding identidad<->origen (3x403, 1002 no contesta) | `v3_spoof_1001-to-1002_*.pcapng` |
+| V4 Cifrado radio | Sustituido por V7 (solicitud de la empresa) | `voLTE-lab/results/v7_d3/` |
+| V5 Rogue eNodeB | VULNERABLE condicionado (PCI 7, attach OK en corrida 154002Z) | `v5_d3/` |
+| V6 GTP-U Injection | VULNERABLE (5 inyecciones, 5 respuestas) / MITIGADO (0 respuestas) | `v6_d3/` |
+| V7 BYE forjado | VULNERABLE (1->0, 4 BYE + 4x200) / MITIGADO (1->1, 3 BYE + 3x403) | `v7_d3/v7_*_{dialog,attack}_*.pcap` |
 
-Todas las evidencias llevan hash SHA-256 en `results/hashes.txt`. Contramedidas pendientes (fase 4): TLS obligatorio en P-CSCF (V1), `pike` en Kamailio (V2), verificación P-Asserted-Identity (V3), verificación de tags de diálogo (V7), lista de celdas autorizadas (V5). Detalle operativo por vector en `voLTE-lab/kali.md`.
+Contramedidas aplicadas y validadas (fase 4, 2026-10-23): TLS obligatorio en P-CSCF + SRTP/SDES (V1), `pike` en Kamailio (V2), binding IMPU<->IP de origen en P-CSCF (V3/V7). Implementación reproducible en `voLTE-lab/parches/aplicar.sh` (revertir con `revertir.sh`). Detalle operativo por vector en `voLTE-lab/kali.md`.
 
 ---
 
@@ -45,7 +45,7 @@ Los 7 vectores se seleccionaron porque:
 1. Son reproducibles sin hardware SDR ni terminales físicos (compatibles con el modo ZMQ).
 2. Cubren los tres planos principales del sistema: señalización IMS/SIP, cifrado de radio y plano de datos GTP-U.
 3. Están priorizados por severidad CVSS 3.1 y mapeados a MITRE ATT&CK for Mobile.
-4. Los 4 primeros (V1–V4) son obligatorios para la tesis; V5–V7 son contribución extendida (opcional según tiempo disponible, ver cronograma).
+4. Los vectores (V1, V2, V3 y V7) son obligatorios para la tesis; V5/V6 son contribución extendida (opcional según tiempo disponible, ver cronograma).
 
 ---
 
@@ -79,21 +79,22 @@ Los 7 vectores se seleccionaron porque:
 
 ## Vectores extendidos (contribución adicional, si el tiempo lo permite)
 
-### V5 — Rogue eNodeB (ejecutado 2026-10-02)
+### V5 - Rogue eNodeB (vulnerable condicionado 2026-11-04)
 
 - Segundo srsENB con takeover ZMQ (misma IP/puertos del eNB1 legítimo, PCI 7 / cell 0x09) para atraer al srsUE, sin SDR físico.
-- Resultado: en 2 corridas el UE no completó attach a la celda falsa en la ventana de observación (MME sin `S1AP/Attach` del IMSI ...789; al restaurar vuelve `CellID[0x19b01]`). Veredicto registrado: no atraído (no equivale a mitigado).
-- Evidencia: `voLTE-lab/results/v5_rogue_*.log` + hashes. Nota: la celda 2 (`.14`, PCI 2) es legítima, no es el ataque.
+- Resultado: en 3 corridas con reinicio de contenedor el UE no completó attach; en la corrida 154002Z, con eNB2 apagado y reinicio de proceso, el UE reportó `Found Cell PCI=7`, obtuvo IP 10.45.0.8 y el MME registró `Attach complete`. Veredicto: vulnerable condicionado (sensible a ZMQ).
+- Evidencia: `voLTE-lab/results/v5_d3/v5_success_20261104T154002Z.log` + hashes. Nota: la celda 2 (`.14`, PCI 2) es legítima, no es el ataque.
 
-### V6 — GTP-U Injection
-- Inyección de paquetes en el túnel GTP-U del S/PGW usando Scapy con un TEID conocido, alterando el tráfico de datos del usuario.
+### V6 - GTP-U Injection (cierre 2026-11-04)
+- Inyección de 5 T-PDU GTP-U desde Kali `.99` al eNB `.4:2152` con el TEID downlink real; la UE responde 5/5 ICMP. Mitigado con filtro `tc` en el eNB (solo SGW-U `.3`): 0 respuestas.
+- Evidencia: `voLTE-lab/results/v6_d3/` + hashes; script `vectores/v6_gtp_cierre.sh`.
 
-### V7 — SIP BYE Forjado (vulnerable confirmado 2026-10-02)
+### V7 — SIP BYE Forjado (cierre D3 2026-11-04)
 
 - Terminación forzada de llamada activa (`1001->1000`) con BYE sin autenticación de diálogo. Requiere extraer `Call-ID`, tags `From/To` y `CSeq` del diálogo (captura en kamailio con `tcpdump`, extracción con `tshark` en kali: kamailio no trae `tshark`).
 - Detalle crítico: el RURI debe ser el contacto remoto (`sip:172.20.0.7:5061`) con `Route: <sip:172.20.0.6:4060;lr>`; con RURI `sip:1000@<dominio>` el P-CSCF no lo enruta.
 - Éxito medido: `BYE CSeq 50151` → `200 OK`, canales PJSIP `1->0` en Asterisk.
-- Evidencia: `voLTE-lab/results/v7_bye_1001-to-1000_*.pcapng` + hashes.
+- Evidencia: `voLTE-lab/results/v7_d3/v7_{vuln,mit}_{dialog,attack}_*.pcap` + hashes.
 
 ---
 

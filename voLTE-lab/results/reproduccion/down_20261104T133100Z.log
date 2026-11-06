@@ -1,0 +1,24 @@
+ Container srsenb Stopping 
+ Container redis Stopping 
+ Container redis Stopped 
+ Container redis Removing 
+ Container redis Removed 
+ Container srsenb Stopped 
+ Container srsenb Removing 
+ Container srsenb Removed 
+ Container open5gs Stopping 
+ Container open5gs Stopped 
+ Container open5gs Removing 
+ Container open5gs Removed 
+ Container mongodb Stopping 
+ Container mongodb Stopped 
+ Container mongodb Removing 
+ Container mongodb Removed 
+ Volume volte-lab_redis_data Removing 
+ Volume volte-lab_pyhss_sqlite Removing 
+ Network volte-lab_volte-net Removing 
+ Volume volte-lab_mongodb_data Removing 
+ Volume volte-lab_redis_data Removed 
+ Volume volte-lab_mongodb_data Removed 
+ Volume volte-lab_pyhss_sqlite Resource is still in use 
+ Network volte-lab_volte-net Resource is still in use 

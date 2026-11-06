@@ -1,0 +1,53 @@
+
+  kamailio\scscf\scscf.cfg:30:loadmodule "cdp_avp.so"
+> kamailio\scscf\scscf.cfg:31:loadmodule "ims_auth.so"
+  kamailio\scscf\scscf.cfg:32:loadmodule "ims_dialog.so"
+  kamailio\scscf\scscf.cfg:33:# Contramedida V2: rate-limit por IP de origen (anti-flood SIP).
+  kamailio\scscf\scscf.cfg:34:loadmodule "pike.so"
+  kamailio\scscf\scscf.cfg:56:
+> kamailio\scscf\scscf.cfg:57:# ims_auth ? autenticaci?n IMS (D2)
+  kamailio\scscf\scscf.cfg:58:# MD5 para interoperar con baresip; PyHSS usa el Ki como password digest.
+> kamailio\scscf\scscf.cfg:59:modparam("ims_auth", "name", "sip:scscf.ims.mnc070.mcc999.3gppnetwork.org:6060")
+> kamailio\scscf\scscf.cfg:60:modparam("ims_auth", "registration_default_algorithm", "MD5")
+> kamailio\scscf\scscf.cfg:61:modparam("ims_auth", "cxdx_dest_realm", "ims.mnc070.mcc999.3gppnetwork.org")
+> kamailio\scscf\scscf.cfg:62:modparam("ims_auth", "cxdx_dest_host", "hss.ims.mnc070.mcc999.3gppnetwork.org")
+> kamailio\scscf\scscf.cfg:63:modparam("ims_auth", "av_check_only_impu", 1)
+> kamailio\scscf\scscf.cfg:64:modparam("ims_auth", "registration_qop", "auth")
+  kamailio\scscf\scscf.cfg:65:
+  kamailio\scscf\scscf.cfg:66:# usrloc
+  kamailio\scscf\scscf.cfg:67:modparam("ims_usrloc_scscf", "db_mode", 0)
+  kamailio\scscf\scscf.cfg:146:route[REGISTER] {
+> kamailio\scscf\scscf.cfg:147:    xlog("L_INFO", "S-CSCF: REGISTER from $fu\n");
+  kamailio\scscf\scscf.cfg:148:
+  kamailio\scscf\scscf.cfg:149:    # El TAS/Asterisk (1000) es un nodo interno de confianza en este lab.
+> kamailio\scscf\scscf.cfg:150:    if ($fU == "1000") {
+  kamailio\scscf\scscf.cfg:151:        xlog("L_INFO", "S-CSCF: REGISTER 1000 (TAS interno) sin challenge\n");
+  kamailio\scscf\scscf.cfg:152:        save("REG_SAR_REPLY", "location");
+  kamailio\scscf\scscf.cfg:153:        exit;
+  kamailio\scscf\scscf.cfg:162:
+> kamailio\scscf\scscf.cfg:163:    if (!ims_www_authenticate("$td")) {
+  kamailio\scscf\scscf.cfg:164:        if ($? == -2) {
+  kamailio\scscf\scscf.cfg:165:            t_reply("403", "Authentication Failed");
+  kamailio\scscf\scscf.cfg:166:            exit;
+  kamailio\scscf\scscf.cfg:175:            xlog("L_INFO", "S-CSCF: enviando challenge IMS (MD5)\n");
+> kamailio\scscf\scscf.cfg:176:            ims_www_challenge("REG_MAR_REPLY", "$td", "MD5");
+  kamailio\scscf\scscf.cfg:177:            exit;
+  kamailio\scscf\scscf.cfg:178:        }
+  kamailio\scscf\scscf.cfg:179:    }
+  kamailio\scscf\scscf.cfg:180:
+> kamailio\scscf\scscf.cfg:181:    xlog("L_INFO", "S-CSCF: REGISTER autenticado para $fu\n");
+  kamailio\scscf\scscf.cfg:182:    save("REG_SAR_REPLY", "location");
+  kamailio\scscf\scscf.cfg:183:    exit;
+  kamailio\scscf\scscf.cfg:184:}
+  kamailio\scscf\scscf.cfg:185:
+> kamailio\scscf\scscf.cfg:186:route[REG_MAR_REPLY] {
+  kamailio\scscf\scscf.cfg:187:    xlog("L_INFO", "S-CSCF: MAR reply return code [$avp(s:maa_return_code)]\n");
+  kamailio\scscf\scscf.cfg:188:    switch ($avp(s:maa_return_code)) {
+  kamailio\scscf\scscf.cfg:189:        case 1:
+  kamailio\scscf\scscf.cfg:206:route[REG_RESYNC_REPLY] {
+> kamailio\scscf\scscf.cfg:207:    ims_www_challenge("REG_MAR_REPLY", "$td", "$var(alg)");
+  kamailio\scscf\scscf.cfg:208:    exit;
+  kamailio\scscf\scscf.cfg:209:}
+  kamailio\scscf\scscf.cfg:210:
+
+

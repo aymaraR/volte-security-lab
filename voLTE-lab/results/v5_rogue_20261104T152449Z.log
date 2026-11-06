@@ -1,0 +1,14 @@
+[v5] Celda legítima actual (MME):
+[v5] UE actual (celda vista por el UE):
+Found Cell:  Mode=FDD, PCI=1, PRB=50, Ports=1, CP=Normal, CFO=-0.2 KHz
+Network attach successful. IP: 10.45.0.4
+    cell_id = 0x09;
+    pci = 7;
+      // {cell_id = 0x02; cross_carrier_scheduling = false; scheduling_cell_id = 0x02; ul_allowed = true}
+        //pci = 2;
+[v5] --- UE tras rogue (attach?) ---
+[v5] Celda vista por el MME ahora:
+--- rogue PCI=7 cell=0x09 TS=20261104T152449Z ---
+
+[v5] Attach post-restore:
+[32m11/04 15:22:49.403[0m: [[33memm[0m] [1;32mINFO[0m: [001010123456789] Attach complete (../src/mme/emm-sm.c:1603)

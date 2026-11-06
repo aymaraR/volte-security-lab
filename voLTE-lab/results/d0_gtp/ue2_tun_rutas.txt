@@ -1,0 +1,6 @@
+﻿3: tun_srsue    inet 10.45.0.3/24 scope global tun_srsue\       valid_lft forever preferred_lft forever
+default via 172.20.0.1 dev eth0 
+10.45.0.0/24 dev tun_srsue proto kernel scope link src 10.45.0.3 
+172.20.0.0/24 dev eth0 proto kernel scope link src 172.20.0.8 
+172.20.0.6 dev tun_srsue scope link 
+172.20.0.7 dev tun_srsue scope link 

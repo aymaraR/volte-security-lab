@@ -1,0 +1,19 @@
+[v5r] TS=20261002T134747Z
+[v5r] MME antes:
+[32m10/02 13:29:02.416[0m: [[33mmme[0m] [1;32mINFO[0m:     ENB_UE_S1AP_ID[5] MME_UE_S1AP_ID[9] TAC[1] CellID[0x19c02] (../src/mme/s1ap-handler.c:870)
+[32m10/02 13:29:10.278[0m: [[33mmme[0m] [1;32mINFO[0m:     ENB_UE_S1AP_ID[5] MME_UE_S1AP_ID[10] TAC[1] CellID[0x19b01] (../src/mme/s1ap-handler.c:870)
+[v5r] config rogue PCI=7 cell=0x09 (misma IP/puertos .4)...
+    pci = 7;
+        //pci = 2;
+    cell_id = 0x09;
+[v5r] reinicio eNB por CONTENEDOR y levanto rogue...
+[v5r] intento UE 1/2 contra rogue...
+[v5r] intento UE 2/2 contra rogue...
+[v5r] UE tras rogue:
+[v5r] MME ahora:
+[32m10/02 13:28:58.008[0m: [[33mmme[0m] [1;32mINFO[0m:     ENB_UE_S1AP_ID[4] MME_UE_S1AP_ID[8] TAC[1] CellID[0x19c02] (../src/mme/s1ap-handler.c:870)
+[32m10/02 13:29:02.416[0m: [[33mmme[0m] [1;32mINFO[0m:     ENB_UE_S1AP_ID[5] MME_UE_S1AP_ID[9] TAC[1] CellID[0x19c02] (../src/mme/s1ap-handler.c:870)
+[32m10/02 13:29:10.278[0m: [[33mmme[0m] [1;32mINFO[0m:     ENB_UE_S1AP_ID[5] MME_UE_S1AP_ID[10] TAC[1] CellID[0x19b01] (../src/mme/s1ap-handler.c:870)
+--- rogue PCI=7 cell=0x09 TS=20261002T134747Z ---
+[32m10/02 13:29:10.278[0m: [[33mmme[0m] [1;32mINFO[0m:     ENB_UE_S1AP_ID[5] MME_UE_S1AP_ID[10] TAC[1] CellID[0x19b01] (../src/mme/s1ap-handler.c:870)
+[v5r] VEREDICTO: no atraido (sigue 0x19b01 legitima).

@@ -1,0 +1,6 @@
+FROM kamailio-ims:latest
+
+# D2: compilar el modulo ims_auth (no venia en la imagen base).
+RUN cd /kamailio/src/modules/ims_auth && \
+    make -j"$(nproc)" && \
+    cp ims_auth.so /usr/local/lib64/kamailio/modules/ims_auth.so

@@ -82,12 +82,11 @@ volte-security-lab/
     ├── open5gs-webui/              WebUI de suscriptores
     ├── kamailio/                   Dockerfile + pcscf/icscf/scscf (.cfg + diameter.xml)
     ├── asterisk/                   Dockerfile + pjsip.conf + extensions.conf
-    ├── pyhss/                      HSS IMS (Diameter Cx) + docker/.env
+    ├── pyhss/                      HSS IMS (Diameter Cx) + docker/.env.example
     ├── attacks/                    Scripts de ataque v1-v7 (scapy, SIPp, tshark)
     ├── vectores/                   Wrappers interactivos v1_mitm.sh ... v7_bye.sh
-    ├── captures/                   Capturas manuales (tshark/tcpdump)
-    ├── results/                    Evidencia final (.pcapng/.csv/.wav + hashes.txt)
-    └── reports/
+    ├── parches/                    Contramedidas Fase 4 (aplicar.sh/revertir.sh + cfg mitigados)
+    └── results/                    Evidencia final curada (.pcapng/.csv/.wav + hashes.txt + README)
 ```
 
 ---
@@ -125,6 +124,8 @@ Usuarios IMS de prueba: `1000` (echo Asterisk), `1001` (UE1, IMSI ...789), `1002
 3. Terminal: Ubuntu 22.04 en WSL2, o Git Bash. Pararse siempre en `voLTE-lab/`.
 4. `python3` disponible en el host (solo se usa para generar las configs de la celda 2 en `.lab-tmp/`).
 5. Puertos libres en el host: `3000` (WebUI), `5060`, `5061`, `8080`, `10000-10100/udp`.
+6. `voLTE-lab/pyhss/docker/.env` (se crea automáticamente desde `.env.example` al ejecutar `lab-up.sh`).
+7. `openssl` disponible (se usa para generar el certificado TLS del P-CSCF).
 
 ---
 
@@ -292,7 +293,7 @@ Limpieza total (borra DBs, solo si se quiere partir de cero):
 - [x] Fase 2: Documentacion de herramientas
 - [x] Fase 3: Diseno de arquitectura del laboratorio
 - [x] Fase 4: Implementacion y configuracion (lab levanta end-to-end con `lab-up.sh`)
-- [x] Fase 5: Ejecucion de pruebas (V1 MITM y V2 DoS completados 2026-10-02, V3 suplantacion confirmada, V7 BYE forjado confirmado 2026-10-02, V5 rogue ejecutado sin exito de atraccion en ventana; V4/V6 bloqueados por plano GTP; contramedidas pendientes - ver `voLTE-lab/kali.md` y `voLTE-lab/results/`)
+- [x] Fase 5: pruebas V1 MITM, V2 DoS, V3 suplantación y V7 BYE forjado (2026-10-23); V4 sustituido por V7; V5 rogue vulnerable condicionado (PCI 7 + attach OK); V6 GTP-U vulnerable/mitigado; IMS-AKA real con 1003. Ver `voLTE-lab/results/`.
 
 ---
 

@@ -37,6 +37,7 @@ services:
       - ./open5gs-config/nrf.yaml:/etc/open5gs/nrf.yaml
       - ./open5gs-config/mme.yaml:/etc/open5gs/mme.yaml
       - ./open5gs-config/mme.conf:/etc/freeDiameter/mme.conf
+      - ./open5gs-config/sgwu.yaml:/etc/open5gs/sgwu.yaml
     command: >
       bash -c "
         open5gs-nrfd &

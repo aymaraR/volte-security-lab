@@ -1,0 +1,12 @@
+mode=aka
+timestamp=20261104T143936Z
+impi=001010123456791@ims.mnc070.mcc999.3gppnetwork.org
+impu=sip:1003@ims.mnc070.mcc999.3gppnetwork.org
+algorithm=AKAv1-MD5
+register_1_status=401
+register_2_status=200
+rand=457beaf38e2b75bb946eb59b81dab742
+autn=834ceb70682e8000f765676d0101cc88
+res=888e2c9826dbcd46
+verdict=PASS
+1001@ims.mnc070.mcc999.3gppnetwork.org: {0/TLS/v4} 200 OK (kamailio (5.8.8 (x86_64/linux))) [1 binding]

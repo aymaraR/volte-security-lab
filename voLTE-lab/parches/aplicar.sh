@@ -36,23 +36,24 @@ log "certificado OK: $(openssl x509 -in kamailio/tls/tls.crt -noout -subject 2>/
 cp parches/pcscf.cfg kamailio/pcscf/pcscf.cfg
 cp parches/scscf.cfg kamailio/scscf/scscf.cfg
 cp parches/pjsip.conf asterisk/pjsip.conf
-docker exec kamailio mkdir -p /etc/kamailio/tls
-docker cp kamailio/tls/tls.crt kamailio:/etc/kamailio/tls/tls.crt >/dev/null
-docker cp kamailio/tls/tls.key kamailio:/etc/kamailio/tls/tls.key >/dev/null
-docker cp parches/tls.cfg kamailio:/etc/kamailio/tls.cfg >/dev/null
+# En docker-compose, /etc/kamailio/tls y tls.cfg ya estan montados (ro).
+# No se hace docker cp sobre el bind mount read-only.
+log "TLS: usando montajes kamailio/tls y parches/tls.cfg"
 
-# --- 3. baresip (UE1 y UE2): TLS + SRTP obligatorio ---
+# --- 3. baresip (UE1 y UE2): TLS + SRTP + credenciales IMS de D2 ---
+# Se instalan cuentas versionadas en parches/baresip{,2}/ para no perder
+# auth_user=IMPI / auth_pass=Ki al aplicar la mitigacion.
 patch_baresip() {
   D="$1"
+  SRC="$2"
+  mkdir -p "$D"
+  cp "$SRC/accounts" "$D/accounts"
+  cp "$SRC/config" "$D/config"
   cp kamailio/tls/tls.crt "$D/tls.crt"
-  sed -i 's|;transport=udp>|;transport=tls>|; s|172.20.0.6:4060;transport=udp|172.20.0.6:5061;transport=tls|' "$D/accounts"
-  sed -i '/;mediaenc=/! s|;regint=3600|;mediaenc=srtp-mand;regint=3600|' "$D/accounts"
-  sed -i 's|^#module[[:space:]]*srtp.so|module\t\t\tsrtp.so|' "$D/config"
-  grep -q '^sip_cafile' "$D/config" || printf 'sip_cafile\t\t/root/.baresip/tls.crt\n' >> "$D/config"
   sed -i '/^sip_listen/d' "$D/config"
 }
-patch_baresip srsran/baresip-config
-patch_baresip .lab-tmp/baresip2
+patch_baresip srsran/baresip-config parches/baresip
+patch_baresip .lab-tmp/baresip2 parches/baresip2
 log "baresip parcheado: $(grep -a '^<sip:1001@' srsran/baresip-config/accounts)"
 
 # --- 4. Validar sintaxis ANTES de reiniciar ---
@@ -69,7 +70,7 @@ for cfg in scscf icscf pcscf; do
   docker exec -d kamailio bash -c "kamailio -DD -E -e -f /usr/local/etc/kamailio/$cfg.cfg > /tmp/$cfg.log 2>&1"
 done
 sleep 10
-n=$(docker exec kamailio sh -c "ps -eo args | grep '[k]amailio -DD' | wc -l")
+n=$(docker exec kamailio sh -c "ps -eo args | grep '[k]amailio -DD' | sed 's/.*-f //' | sort -u | wc -l")
 [ "$n" -ge 3 ] || { log "ERROR: solo $n CSCF vivos"; exit 1; }
 log "Kamailio reiniciado ($n CSCF)"
 
@@ -88,6 +89,7 @@ log "Asterisk OK: res_srtp Running + ue-endpoint media_encryption=sdes"
 # --- 7. Reiniciar baresip (UE1/UE2) con TLS+SRTP ---
 docker exec srsue pkill -x baresip >/dev/null 2>&1 || true
 docker exec srsue2 pkill -x baresip >/dev/null 2>&1 || true
+docker exec srsue2 sh -c "mkdir -p /root/.baresip" >/dev/null 2>&1 || true
 docker exec -i srsue2 sh -c "cat > /root/.baresip/accounts" < .lab-tmp/baresip2/accounts
 docker exec -i srsue2 sh -c "cat > /root/.baresip/config" < .lab-tmp/baresip2/config
 docker exec -i srsue2 sh -c "cat > /root/.baresip/tls.crt" < .lab-tmp/baresip2/tls.crt

@@ -1,0 +1,10 @@
+mode=mit
+timestamp=20261104T142318Z
+teid=0x00000002
+ue_ip=10.45.0.5
+injected_attempts=5
+injected_seen_enb=5
+responses_enb=0
+responses_upf=0
+filter=tc-flower-src-172.20.0.3-solo
+verdict=MITIGADO

@@ -36,4 +36,4 @@
 #  <sip:user@[2001:df8:0:16:216:6fff:fe91:614c]:5070;transport=tcp>;auth_pass=secret
 #
 #<sip:user@domain>;auth_pass=PASSWORD
-<sip:1001@ims.mnc070.mcc999.3gppnetwork.org;transport=tls>;auth_user=999070000000002;auth_pass=ue1001pass123;outbound="sip:172.20.0.6:5061;transport=tls";mediaenc=srtp-mand;regint=3600
+<sip:1001@ims.mnc070.mcc999.3gppnetwork.org;transport=tls>;auth_user=001010123456789@ims.mnc070.mcc999.3gppnetwork.org;auth_pass=00112233445566778899aabbccddeeff;outbound="sip:172.20.0.6:5061;transport=tls";mediaenc=srtp-mand;regint=3600

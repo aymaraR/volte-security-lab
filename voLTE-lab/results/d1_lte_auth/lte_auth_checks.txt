@@ -1,0 +1,10 @@
+authentication_request=1
+authentication_response=1
+security_mode_command=1
+security_mode_complete=1
+authentication_failure=0
+attach_reject=0
+attach_complete=1
+no_bearer_in_mme_log=0
+attach_accept_ebi5=1
+attach_complete_ebi5=1

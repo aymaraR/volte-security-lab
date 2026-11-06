@@ -114,34 +114,26 @@ Evidencia: `results/v3_spoof_1001-to-1002.pcapng` (+ hash). Nota: directo al
 S-CSCF (6060) falla con 478/DNS (requiere el path vía P-CSCF).
 Pendiente fase 4: habilitar PAI check -> re-ejecutar -> 403 esperado.
 
-## V4 — Cifrado radio (CVSS 7.5, T1040) — BLOQUEADO (track GTP, causa raíz ↓)
+## V4 — Cifrado radio (CVSS 7.5, T1040) — SUSTITUIDO POR V7 (solicitud empresa; causa raíz GTP documentada ↓)
 
-`vectores/v4_cipher.sh` modos `check/capture/compare` listos, pero sin
-tráfico de usuario por GTP no hay qué capturar en `ogstun`.
-Ver causa raíz en "Plano GTP" abajo.
+V4 no se ejecuta: la empresa solicitó sustituirlo por V7. `vectores/v4_cipher.sh`
+se conserva como anexo opcional. El cierre usa V7 con BYE en el pcap (`results/v7_d3/`).
 
-## V5 — Rogue eNodeB — EJECUTADO 2026-10-02 (2 corridas, veredicto: NO ATRAIDO en ventana)
+## V5 - Rogue eNodeB - VULNERABLE CONDICIONADO 2026-11-04
 
-`vectores/v5_rogue.sh` (defaults `yes/7/0x09`) + reintento mejorado
-(`.lab-tmp/run-v5retry.sh`: restart por contenedor, 2 intentos UE, ventana 90s c/u).
-Rogue levanta (RF `ZMQ tx *:2000/rx .5:2001`, `PCI 7/cell 0x09`) pero el MME
-no registra ningun `S1AP/Attach` de `001010123456789` en la ventana y el UE
-no completa `attach` al rogue (verificado en `docker logs open5gs` + `/tmp/ue.log`).
-Al restaurar el legitimo, el MME vuelve a ver `CellID[0x19b01]` + `Attach complete`.
-Veredicto honesto: **NO ATRAIDO en ventana de observacion** (no confundir con
-mitigado: falta probar reselection forzada / SIB prioritaria). UE1 quedo con
-attach RAN intermitente tras el experimento (sync RF ZMQ flaky ~50%); UE2,
-EPC, IMS y SIP por bridge siguen OK.
-Evidencia: `results/v5_rogue_20261002T133213Z.log` +
-`results/v5_rogue_reintento_20261002T134747Z.log` (+ 2 hashes `V5`).
-Leccion: para RAN usar siempre `docker restart` por contenedor, no `pkill`
-(lo documentado en `lab-up.sh`: sockets ZMQ se cuelgan con solo-proceso).
-Pendiente fase 4: lista de celdas autorizadas / deteccion de PCI inesperado.
+`vectores/v5_rogue.sh` (takeover ZMQ, PCI 7 / cell 0x09). Tres corridas con
+`docker restart` del UE no sincronizaron; la corrida 154002Z, con eNB2 apagado
+y reinicio del proceso UE, si funciono: el UE reporto `Found Cell PCI=7`,
+obtuvo IP 10.45.0.8 y el MME registro `Attach complete`.
 
-## V6 — GTP-U Injection — BLOQUEADO (track GTP, causa raíz ↓)
+Evidencia: `results/v5_d3/v5_success_20261104T154002Z.log`.
+Veredicto: **VULNERABLE CONDICIONADO**; la reproducibilidad depende de ZMQ/PHY.
+No se etiqueta como estable al 100 %. Contramedida propuesta: allowlist
+eNB/PCI y deteccion de PCI inesperado.
 
-`vectores/v6_gtp.sh` con auto-descubrimiento de TEID; sin plano GTP no hay
-TEID válido (sale código 2 = bloqueado explícito).
+## V6 - GTP-U Injection - CERRADO 2026-11-04
+
+`vectores/v6_gtp_cierre.sh` (TEID downlink real, 5 inyecciones, 5 respuestas).
 
 ## V7 — SIP BYE forjado — VULNERABLE CONFIRMADO 2026-10-02
 
@@ -161,21 +153,18 @@ Evidencia: `results/v7_bye_1001-to-1000_20261002T134234Z.pcapng` (intento 1,
 dialogo `e8d5516a4492fc10`, BYE con RURI incorrecto, `1->1`) +
 `results/v7_bye_1001-to-1000_20261002T134517Z.pcapng` (final, dialogo
 `21a038c99068157d`, `BYE 50151` + `200 OK`, `1->0`, 522885 bytes) (+ hashes `V7`).
-Pendiente fase 4: verificar tags From/To del dialogo + auth -> 403/481 esperado.
+Fase 4 D3: V7 re-ejecutado en dos fases. Vulnerable 1->0 con 4 BYE + 4x200; mitigado 1->1 con 3 BYE + 3x403. Evidencia en `results/v7_d3/`.
 
-## Plano GTP — causa raíz del bloqueo V4/V6 (diagnóstico 2026-10-02)
+## Plano GTP - diagnostico historico (V4 sustituido; V6 ejecutado)
 
-El túnel UE↔UPF **nunca transportó datos** en este lab: con tráfico en IDLE
-el MME rechaza el Service Request y el UE entra en espiral
-detach→re-attach con **IP nueva cada ~60-90s** (visto .2→.4→.6→.8);
-barespip queda bindeado a la IP vieja → `Network is unreachable` permanente.
-En quietud total (sin baresip/pings) la sesión es estable >180s.
-Evidencia: `Removed Session` + `Attach complete` cíclicos en `docker logs
-open5gs`, `Attach Reject Cause=6F` y `Service Request mo-Data → RRC Release`
-en `/tmp/ue.log` de srsue. El registro SIP vía túnel (paso 13 de lab-up.sh)
-falla sistemáticamente; el registro vía bridge (paso 12) funciona siempre.
-V1/V2/V3/V7 no necesitan el túnel. Desbloquear V4/V6 requiere fijar el
-Service Request (interlab srsUE↔MME) o aceptar ventana CONNECTED post-attach.
+El tunel UE-UPF quedo bloqueado en el diagnostico 2026-10-02 por el Service
+Request rechazado (causa 9) y la perdida de la IP del tunel. En D0 se corrigio:
+SGW-U GTP-U en 172.20.0.3, ogstun UP antes del attach y keepalive ICMP desde
+el attach. La llamada 1001-1000 ya cursa por GTP-U.
+
+V4 se sustituyo por V7 (solicitud de la empresa); V6 se ejecuto en alcance extendido.
+
+Corrida 2026-11-04 15:40: PCI 7 + attach OK con eNB2 apagado y reinicio de proceso; evidencia `results/v5_d3/v5_success_20261104T154002Z.log`.
 
 ## Fase 4 — Contramedidas aplicadas y validadas (2026-10-23)
 

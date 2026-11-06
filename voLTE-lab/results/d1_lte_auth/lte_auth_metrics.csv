@@ -1,0 +1,18 @@
+metric,value,unit,source
+attach_attempts,1,count,MME/UE log
+attach_time_ms,413.257,ms,frame 49 (Attach Request) -> frame 59 (Attach Complete)
+attach_request_to_auth_req_ms,16.702,ms,frame 49 -> 50
+auth_req_to_resp_ms,33.550,ms,frame 50 (Authentication Request) -> 51 (Authentication Response)
+auth_resp_to_security_cmd_ms,0.515,ms,frame 51 -> 52
+security_mode_cmd_to_complete_ms,26.189,ms,frame 52 -> 53
+auth_challenge_total_ms,60.254,ms,frame 50 -> 53
+attach_accept_to_complete_ms,261.002,ms,frame 56 -> 59
+eea,EEA0,algorithm,Security Mode Command
+eia,EIA2,algorithm,Security Mode Command
+imsi,001010123456789,id,ue.conf/MongoDB
+ebi_attach_accept,5,id,frame 56
+ebi_attach_complete,5,id,frame 59
+rand,db6295324a002b9738cca27b64840af1,hex,Authentication Request
+autn,df6795cf3809800003d19974213b256c,hex,Authentication Request
+res,da418b3e8def09d4,hex,Authentication Response
+result,OK,,UE attached and GTP path verified

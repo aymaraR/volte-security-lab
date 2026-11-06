@@ -3182,6 +3182,23 @@ class Diameter:
         try:
             subscriber_details = self.database.Get_Subscriber(imsi=imsi)                                               #Get subscriber details
         except:
+            subscriber_details = None
+
+        # D2: el primer REGISTER IMS sin Authorization usa el IMPU (p.ej. 1001)
+        # como private identity. PyHSS necesita el IMSI real para buscar el AuC.
+        if not subscriber_details:
+            print("D2 IMPU fallback for " + str(imsi), flush=True)
+            try:
+                ims_subscriber = self.database.Get_IMS_Subscriber(msisdn=imsi)
+                print("D2 ims_subscriber=" + str(ims_subscriber), flush=True)
+                if ims_subscriber:
+                    imsi = ims_subscriber['imsi']
+                    subscriber_details = self.database.Get_Subscriber(imsi=imsi)
+            except Exception as e:
+                print("D2 fallback error=" + repr(e), flush=True)
+                subscriber_details = None
+
+        if not subscriber_details:
             #Handle if the subscriber is not present in HSS return "DIAMETER_ERROR_USER_UNKNOWN"
             self.logTool.log(service='HSS', level='debug', message="Subscriber " + str(imsi) + " unknown in HSS for MAA", redisClient=self.redisMessaging)
             self.redisMessaging.sendMetric(serviceName='diameter', metricName='prom_diam_auth_event_count',

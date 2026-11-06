@@ -1,0 +1,6 @@
+1001@ims.mnc070.mcc999.3gppnetwork.org: {0/TLS/v4} 200 OK (kamailio (5.8.8 (x86_64/linux))) [1 binding]
+1002@ims.mnc070.mcc999.3gppnetwork.org: {0/TLS/v4} 200 OK (kamailio (5.8.8 (x86_64/linux))) [1 binding]
+
+ scscf-reg/sip:172.20.0.6:6060                           scscf-auth                  Registered        (exp. 2940s)
+
+

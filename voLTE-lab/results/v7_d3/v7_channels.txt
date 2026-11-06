@@ -1,0 +1,4 @@
+V7 vulnerable D3: PJSIP 1 -> 0
+V7 mitigated D3: PJSIP 1 -> 1
+V7 vulnerable D5 clean: PJSIP 1 -> 0
+V7 mitigated D5 clean: PJSIP 1 -> 1

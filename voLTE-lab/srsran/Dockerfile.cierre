@@ -1,0 +1,9 @@
+FROM srsran-zmq:latest
+
+# Workaround de cierre: srsUE parsea mal el EBI del Activate Default de
+# Open5GS (EBI 9 en lugar de 5); se fuerza EBI=5/PTI=1 antes de setup_if_addr
+# y se recompila solo el binario srsue.
+COPY patches/fix_ebi.py /tmp/fix_ebi.py
+RUN python3 /tmp/fix_ebi.py && \
+    cd /srsran/build && make -j"$(nproc)" srsue && \
+    cp /srsran/build/srsue/src/srsue /usr/local/bin/srsue

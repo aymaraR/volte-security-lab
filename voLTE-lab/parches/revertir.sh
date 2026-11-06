@@ -46,6 +46,8 @@ log "Asterisk reiniciado (vulnerable)"
 # baresip: modo bridge (V1/V2/V3/V7 no necesitan el túnel).
 for c in srsue srsue2; do
   docker exec "$c" pkill -f tun_srsue >/dev/null 2>&1 || true
+  # Modo bridge: quitar rutas stale al tunel para que baresip use eth0.
+  docker exec "$c" sh -c "ip route del 172.20.0.6/32 dev tun_srsue 2>/dev/null || true; ip route del 172.20.0.7/32 dev tun_srsue 2>/dev/null || true"
 done
 sleep 1
 docker exec srsue pkill -x baresip >/dev/null 2>&1 || true

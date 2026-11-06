@@ -1,0 +1,5 @@
+run,scenario,channels_before,channels_after,bye_requests,bye_200,bye_403_481,verdict
+D3,vulnerable,1,0,4,4,0,VULNERABLE
+D3,mitigated,1,1,3,0,3,MITIGADO
+D5-clean,vulnerable,1,0,4,4,0,VULNERABLE
+D5-clean,mitigated,1,1,3,0,3,MITIGADO

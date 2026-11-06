@@ -1,0 +1,392 @@
+baresip v1.0.0 Copyright (C) 2010 - 2020 Alfred E. Heggestad et al.
+Local network address:  IPv4=eth0|172.20.0.5 
+ua: adding SIP CA: /root/.baresip/tls.crt
+[31mmain: epoll_ctl: EPOLL_CTL_ADD: fd=0 (Operation not permitted)
+[;m[31mmain: fd_listen: fd=0 flags=0x01 (Operation not permitted)
+[;m[31mmodule stdio.so: Operation not permitted
+[;maucodec: PCMU/8000/1
+aucodec: PCMA/8000/1
+aufilt: sndfile
+sndfile: saving files in /root
+ausrc: aufile
+ausrc: ausine
+medianat: stun
+medianat: turn
+medianat: ice
+mediaenc: srtp
+mediaenc: srtp-mand
+mediaenc: srtp-mandf
+1001@ims.mnc070.mcc999.3gppnetwork.org: Using media encryption 'srtp-mand'
+Populated 1 account
+[31mcontact: decode error '
+'
+[;m[31mmodule contact.so: No such file or directory
+[;mPopulated 2 audio codecs
+Populated 1 audio filter
+Populated 0 video codecs
+Populated 0 video filters
+baresip is ready.
+/
+/d
+/di
+/dia
+/dial
+/dial 
+/dial 1
+/dial 10
+/dial 100
+/dial 1000
+/dial 1000@
+/dial 1000@i
+/dial 1000@im
+/dial 1000@ims
+/dial 1000@ims.
+/dial 1000@ims.m
+/dial 1000@ims.mn
+/dial 1000@ims.mnc
+/dial 1000@ims.mnc0
+/dial 1000@ims.mnc07
+/dial 1000@ims.mnc070
+/dial 1000@ims.mnc070.
+/dial 1000@ims.mnc070.m
+/dial 1000@ims.mnc070.mc
+/dial 1000@ims.mnc070.mcc
+/dial 1000@ims.mnc070.mcc9
+/dial 1000@ims.mnc070.mcc99
+/dial 1000@ims.mnc070.mcc999
+/dial 1000@ims.mnc070.mcc999.
+/dial 1000@ims.mnc070.mcc999.3
+/dial 1000@ims.mnc070.mcc999.3g
+/dial 1000@ims.mnc070.mcc999.3gp
+/dial 1000@ims.mnc070.mcc999.3gpp
+/dial 1000@ims.mnc070.mcc999.3gppn
+/dial 1000@ims.mnc070.mcc999.3gppne
+/dial 1000@ims.mnc070.mcc999.3gppnet
+/dial 1000@ims.mnc070.mcc999.3gppnetw
+/dial 1000@ims.mnc070.mcc999.3gppnetwo
+/dial 1000@ims.mnc070.mcc999.3gppnetwor
+/dial 1000@ims.mnc070.mcc999.3gppnetwork
+/dial 1000@ims.mnc070.mcc999.3gppnetwork.
+/dial 1000@ims.mnc070.mcc999.3gppnetwork.o
+/dial 1000@ims.mnc070.mcc999.3gppnetwork.or
+/dial 1000@ims.mnc070.mcc999.3gppnetwork.org
+ua: using best effort AF: af=AF_INET
+stream: audio: starting mediaenc 'srtp-mand' (wait_secure=0)
+call: connecting to 'sip:1000@ims.mnc070.mcc999.3gppnetwork.org;transport=tls'..
+
+
+call: SIP Progress: 100 trying -- your call is important to us (/)
+
+
+1001@ims.mnc070.mcc999.3gppnetwork.org: {0/TLS/v4} 200 OK (kamailio (5.8.8 (x86_64/linux))) [2 bindings]
+
+stream: update 'audio'
+stream: audio: starting mediaenc 'srtp-mand' (wait_secure=0)
+srtp: audio: SRTP is Enabled (cryptosuite=AES_CM_128_HMAC_SHA1_80)
+audio: Set audio encoder: PCMU 8000Hz 1ch
+audio: enable ausrc resampler: 8000Hz/1ch <-- 48000Hz/2ch
+ausine: 48000 Hz, 2 channels, frequency 400 Hz
+ausine: audio ptime=20 sampc=1920
+audio: source started with sample format S16LE
+audio: Set audio decoder: PCMU 8000Hz 1ch
+sndfile: dumping encode audio to /root/dump-2026-11-04-05-40-04-enc.wav
+sndfile: dumping decode audio to /root/dump-2026-11-04-05-40-04-dec.wav
+audio tx pipeline:      ausine ---> sndfile ---> PCMU
+audio rx pipeline:      (play) <--- sndfile <--- PCMU
+1001@ims.mnc070.mcc999.3gppnetwork.org: Call established: sip:1000@ims.mnc070.mcc999.3gppnetwork.org;transport=tls
+
+[0:00:00] audio=0/0 (bit/s)    
+stream: incoming rtp for 'audio' established, receiving from 172.20.0.7:18660
+
+[0:00:00] audio=0/0 (bit/s)    
+
+[0:00:00] audio=0/0 (bit/s)    
+
+[0:00:00] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:01] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:02] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:03] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:04] audio=0/0 (bit/s)    
+
+[0:00:05] audio=0/0 (bit/s)    
+
+[0:00:05] audio=0/0 (bit/s)    
+
+[0:00:05] audio=0/0 (bit/s)    
+
+[0:00:05] audio=0/0 (bit/s)    
+
+[0:00:05] audio=0/0 (bit/s)    
+
+[0:00:05] audio=0/0 (bit/s)    
+
+[0:00:05] audio=0/0 (bit/s)    
+
+[0:00:05] audio=0/0 (bit/s)    
+
+[0:00:05] audio=0/0 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:06] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:07] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:08] audio=64000/64853 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:09] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:10] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:11] audio=64000/64000 (bit/s)    
+
+[0:00:12] audio=64000/64000 (bit/s)    
+
+[0:00:12] audio=64000/64000 (bit/s)    
+
+[0:00:12] audio=64000/64000 (bit/s)    
+
+[0:00:12] audio=64000/64000 (bit/s)    
+
+[0:00:12] audio=64000/64000 (bit/s)    
+
+[0:00:12] audio=64000/64000 (bit/s)    
+
+[0:00:12] audio=64000/64000 (bit/s)    
+
+[0:00:12] audio=64000/64000 (bit/s)    
+
+[0:00:12] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:13] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:14] audio=64000/64000 (bit/s)    
+
+[0:00:15] audio=63936/63509 (bit/s)    
+
+[0:00:15] audio=63936/63509 (bit/s)    
+
+[0:00:15] audio=63936/63509 (bit/s)    
+
+[0:00:15] audio=63936/63509 (bit/s)    
+terminated by signal 15
+ua: stop all (forced=0)
+sip:1001@ims.mnc070.mcc999.3gppnetwork.org: Call with sip:1000@ims.mnc070.mcc999.3gppnetwork.org;transport=tls terminated (duration: 15 secs)

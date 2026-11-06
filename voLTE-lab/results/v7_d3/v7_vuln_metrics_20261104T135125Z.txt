@@ -1,0 +1,12 @@
+mode=vuln
+timestamp=20261104T135125Z
+call_id=ab51d6c5cfef9692
+from_tag=45ce0664e53e1004
+to_tag=65e9a6b0-4035-4b95-880b-fef447e9b454
+cseq=56285
+ruri=sip:172.20.0.7:5061
+channels_before=1
+channels_after=0
+bye_packets=4
+bye_200=4
+bye_403_481=0

@@ -1,0 +1,268 @@
+
+  pyhss\lib\diameter.py:1308:                if not subscriberDetails.get('enabled', False):
+  pyhss\lib\diameter.py:1309:                    return False
+> pyhss\lib\diameter.py:1310:                imsSubscriberDetails = self.database.Get_IMS_Subscriber(imsi=imsi)
+  pyhss\lib\diameter.py:1311:                self.logTool.log(service='AS', level='debug', message=f"[diameter.py] 
+[validateImsSubscriber] IMS Subscriber validated based on IMSI OK", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:1312:        except Exception as e:
+  pyhss\lib\diameter.py:1313:            return False
+  pyhss\lib\diameter.py:1314:        try:
+  pyhss\lib\diameter.py:1315:            if msisdn is not None:
+  pyhss\lib\diameter.py:1316:                subscriberDetails = self.database.Get_Subscriber(msisdn=msisdn)
+  pyhss\lib\diameter.py:1317:                if not subscriberDetails.get('enabled', False):
+  pyhss\lib\diameter.py:1318:                    return False
+> pyhss\lib\diameter.py:1319:                imsSubscriberDetails = self.database.Get_IMS_Subscriber(msisdn=msisdn)
+  pyhss\lib\diameter.py:1320:                self.logTool.log(service='AS', level='debug', message=f"[diameter.py] 
+[validateImsSubscriber] IMS Subscriber validated based on MSISDN OK", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:1321:        except Exception as e:
+  pyhss\lib\diameter.py:1322:            return False
+  pyhss\lib\diameter.py:1323:        
+  pyhss\lib\diameter.py:1324:        return True
+  pyhss\lib\diameter.py:1325:
+  pyhss\lib\diameter.py:1326:
+  pyhss\lib\diameter.py:1327:    def deregisterApn(self, imsi: str=None, msisdn: str=None, apn: str=None) -> bool:
+  pyhss\lib\diameter.py:1656:            return self.generate_vendor_avp(1001, "c0", 10415, ChargingRuleDef)
+  pyhss\lib\diameter.py:1657:
+> pyhss\lib\diameter.py:1658:    def Get_IMS_Subscriber_Details_from_AVP(self, username):
+  pyhss\lib\diameter.py:1659:        #Feed the Username AVP with Tel URI, SIP URI and either MSISDN or IMSI and this 
+returns user data
+  pyhss\lib\diameter.py:1660:        username = binascii.unhexlify(username).decode('utf-8')
+  pyhss\lib\diameter.py:1661:        self.logTool.log(service='HSS', level='debug', message="Username AVP is present, 
+value is " + str(username), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:1662:        username = username.split('@')[0]   #Strip Domain to get User part
+  pyhss\lib\diameter.py:1663:        username = username[4:]             #Strip tel: or sip: prefix
+  pyhss\lib\diameter.py:1664:        #Determine if dealing with IMSI or MSISDN
+  pyhss\lib\diameter.py:1665:        if (len(username) == 15) or (len(username) == 16):
+  pyhss\lib\diameter.py:1666:            self.logTool.log(service='HSS', level='debug', message="We have an IMSI: " + 
+str(username), redisClient=self.redisMessaging)
+> pyhss\lib\diameter.py:1667:            ims_subscriber_details = self.database.Get_IMS_Subscriber(imsi=username)
+  pyhss\lib\diameter.py:1668:        else:
+  pyhss\lib\diameter.py:1669:            self.logTool.log(service='HSS', level='debug', message="We have an msisdn: " 
++ str(username), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:1670:            if username[0] == '+':
+  pyhss\lib\diameter.py:1671:                username = username[1:]
+> pyhss\lib\diameter.py:1672:            ims_subscriber_details = self.database.Get_IMS_Subscriber(msisdn=username)
+  pyhss\lib\diameter.py:1673:        self.logTool.log(service='HSS', level='debug', message="Got subscriber details: " 
++ str(ims_subscriber_details), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:1674:        return ims_subscriber_details
+  pyhss\lib\diameter.py:1675:
+  pyhss\lib\diameter.py:1676:    def clear_expired_emergency_subscribers(self) -> bool:
+  pyhss\lib\diameter.py:1677:        """
+  pyhss\lib\diameter.py:1678:        Clears expired emergency subscribers from the database.
+  pyhss\lib\diameter.py:1679:        """
+  pyhss\lib\diameter.py:1680:        try:
+  pyhss\lib\diameter.py:2934:            domain = username.split('@')[1] #Get Domain Part
+  pyhss\lib\diameter.py:2935:            self.logTool.log(service='HSS', level='debug', message="Extracted imsi: " + 
+str(imsi) + " now checking backend for this IMSI", redisClient=self.redisMessaging)
+> pyhss\lib\diameter.py:2936:            ims_subscriber_details = self.database.Get_IMS_Subscriber(imsi=imsi)
+  pyhss\lib\diameter.py:2937:        except Exception as E:
+  pyhss\lib\diameter.py:2938:            self.logTool.log(service='HSS', level='debug', message="Threw Exception: " + 
+str(E), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:2939:            self.logTool.log(service='HSS', level='debug', message=f"No known MSISDN or 
+IMSI in Answer_16777216_300()", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:2940:            self.redisMessaging.sendMetric(serviceName='diameter', 
+metricName='prom_diam_auth_event_count',
+  pyhss\lib\diameter.py:2941:                                            metricType='counter', metricAction='inc', 
+  pyhss\lib\diameter.py:2942:                                            metricValue=1.0, 
+  pyhss\lib\diameter.py:2943:                                            metricLabels={
+  pyhss\lib\diameter.py:2944:                                                        "diameter_application_id": 
+16777216,
+  pyhss\lib\diameter.py:3034:            self.logTool.log(service='HSS', level='debug', message="Checking if username 
+present", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3035:            username = self.get_avp_data(avps, 601)[0]                                    
+                 
+> pyhss\lib\diameter.py:3036:            ims_subscriber_details = self.Get_IMS_Subscriber_Details_from_AVP(username) 
+  pyhss\lib\diameter.py:3037:            self.logTool.log(service='HSS', level='debug', message="Got subscriber 
+details: " + str(ims_subscriber_details), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3038:            imsi = ims_subscriber_details['imsi']
+  pyhss\lib\diameter.py:3039:            domain = "ims.mnc" + str(self.MNC).zfill(3) + ".mcc" + str(self.MCC).zfill(3) 
++ ".3gppnetwork.org"
+  pyhss\lib\diameter.py:3040:        except Exception as E:
+  pyhss\lib\diameter.py:3041:            self.logTool.log(service='HSS', level='debug', message="Threw Exception: " + 
+str(E), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3042:            self.logTool.log(service='HSS', level='debug', message=f"No known MSISDN or 
+IMSI in Answer_16777216_301()", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3043:            result_code = 5005
+  pyhss\lib\diameter.py:3044:            #Experimental Result AVP
+  pyhss\lib\diameter.py:3086:            #So we need to check the current S-CSCF from DB == the S-CSCF sending the SAR 
+Deregister before clearing the S-CSCF from the DB
+  pyhss\lib\diameter.py:3087:            username = self.get_avp_data(avps, 601)[0] 
+> pyhss\lib\diameter.py:3088:            ims_subscriber_details = self.Get_IMS_Subscriber_Details_from_AVP(username)   
+  pyhss\lib\diameter.py:3089:            scscf_on_record = ims_subscriber_details.get('scscf', None)
+  pyhss\lib\diameter.py:3090:            if scscf_on_record == ServingCSCF:
+  pyhss\lib\diameter.py:3091:                self.logTool.log(service='HSS', level='debug', message="Subscriber is 
+served by S-CSCF " + str(ServingCSCF) + " and matches S-CSCF on record - Clearing Registration" + 
+str(scscf_on_record), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3092:                self.database.Update_Serving_CSCF(imsi, serving_cscf=None)
+  pyhss\lib\diameter.py:3093:            else:
+  pyhss\lib\diameter.py:3094:                self.logTool.log(service='HSS', level='debug', message="Subscriber is 
+served by S-CSCF " + str(ServingCSCF) + " but does not match S-CSCF on record - Ignoring request to clear 
+registration" + str(scscf_on_record), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3095:
+  pyhss\lib\diameter.py:3096:        avp += self.generate_avp(268, 40, self.int_to_hex(2001, 4))                       
+          #Result Code (DIAMETER_SUCCESS (2001))
+  pyhss\lib\diameter.py:3112:            self.logTool.log(service='HSS', level='debug', message="Checking if username 
+present", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3113:            username = self.get_avp_data(avps, 601)[0] 
+> pyhss\lib\diameter.py:3114:            ims_subscriber_details = self.Get_IMS_Subscriber_Details_from_AVP(username)   
+                                                 
+  pyhss\lib\diameter.py:3115:            if ims_subscriber_details['scscf'] != None:
+  pyhss\lib\diameter.py:3116:                self.logTool.log(service='HSS', level='debug', message="Got SCSCF on 
+record for Sub", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3117:                #Strip double sip prefix
+  pyhss\lib\diameter.py:3118:                avp += self.generate_vendor_avp(602, "c0", 10415, 
+str(binascii.hexlify(str.encode(str(ims_subscriber_details['scscf']))),'ascii'))
+  pyhss\lib\diameter.py:3119:            else:
+  pyhss\lib\diameter.py:3120:                self.logTool.log(service='HSS', level='debug', message="No SCSF assigned 
+- Using SCSCF Pool", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3121:                if 'scscf_pool' in config['hss']:
+  pyhss\lib\diameter.py:3122:                    try:
+  pyhss\lib\diameter.py:3185:            subscriber_details = None
+  pyhss\lib\diameter.py:3186:
+> pyhss\lib\diameter.py:3187:        # D2: el primer REGISTER IMS sin Authorization usa el IMPU (p.ej. 1001)
+  pyhss\lib\diameter.py:3188:        # como private identity. PyHSS necesita el IMSI real para buscar el AuC.
+  pyhss\lib\diameter.py:3189:        if not subscriber_details:
+> pyhss\lib\diameter.py:3190:            print("D2 IMPU fallback for " + str(imsi), flush=True)
+  pyhss\lib\diameter.py:3191:            try:
+> pyhss\lib\diameter.py:3192:                ims_subscriber = self.database.Get_IMS_Subscriber(msisdn=imsi)
+  pyhss\lib\diameter.py:3193:                print("D2 ims_subscriber=" + str(ims_subscriber), flush=True)
+  pyhss\lib\diameter.py:3194:                if ims_subscriber:
+  pyhss\lib\diameter.py:3195:                    imsi = ims_subscriber['imsi']
+  pyhss\lib\diameter.py:3196:                    subscriber_details = self.database.Get_Subscriber(imsi=imsi)
+  pyhss\lib\diameter.py:3197:            except Exception as e:
+  pyhss\lib\diameter.py:3198:                print("D2 fallback error=" + repr(e), flush=True)
+  pyhss\lib\diameter.py:3199:                subscriber_details = None
+  pyhss\lib\diameter.py:3200:
+  pyhss\lib\diameter.py:3375:                msisdn = self.TBCD_decode(msisdn)
+  pyhss\lib\diameter.py:3376:                self.logTool.log(service='HSS', level='debug', message="Got MSISDN with 
+value " + str(msisdn), redisClient=self.redisMessaging)            
+> pyhss\lib\diameter.py:3377:                subscriber_ims_details = self.database.Get_IMS_Subscriber(msisdn=msisdn)
+  pyhss\lib\diameter.py:3378:                subscriber_details = self.database.Get_Subscriber(msisdn=msisdn)
+  pyhss\lib\diameter.py:3379:            except:
+  pyhss\lib\diameter.py:3380:            #Try to get the IMSI from the Public Identity
+  pyhss\lib\diameter.py:3381:                public_identity = self.get_avp_data(avps, 601)[0]
+  pyhss\lib\diameter.py:3382:                public_identity = binascii.unhexlify(public_identity).decode('utf-8')
+  pyhss\lib\diameter.py:3383:                self.logTool.log(service='HSS', level='debug', message="Got 
+public_identity : " + str(public_identity), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3384:                if "sip:" in public_identity:
+  pyhss\lib\diameter.py:3385:                    public_identity = public_identity.replace("sip:", "")
+  pyhss\lib\diameter.py:3393:                    imsi = public_identity
+  pyhss\lib\diameter.py:3394:                    self.logTool.log(service='HSS', level='debug', message="Got IMSI: " + 
+str(imsi), redisClient=self.redisMessaging)                                                              
+> pyhss\lib\diameter.py:3395:                    subscriber_ims_details = self.database.Get_IMS_Subscriber(imsi=imsi)
+  pyhss\lib\diameter.py:3396:                    subscriber_details = self.database.Get_Subscriber(imsi=imsi)
+  pyhss\lib\diameter.py:3397:                else:
+  pyhss\lib\diameter.py:3398:                    msisdn = public_identity
+  pyhss\lib\diameter.py:3399:                    self.logTool.log(service='HSS', level='debug', message="Got msisdn : 
+" + str(msisdn), redisClient=self.redisMessaging)
+> pyhss\lib\diameter.py:3400:                    subscriber_ims_details = 
+self.database.Get_IMS_Subscriber(msisdn=msisdn)
+  pyhss\lib\diameter.py:3401:                    subscriber_details = self.database.Get_Subscriber(msisdn=msisdn)
+  pyhss\lib\diameter.py:3402:        except:
+  pyhss\lib\diameter.py:3403:            self.logTool.log(service='HSS', level='debug', message="No User Identity 
+present - This request is invalid", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:3404:
+  pyhss\lib\diameter.py:3405:        session_id = self.get_avp_data(avps, 263)[0]                                      
+               #Get Session-ID
+  pyhss\lib\diameter.py:3406:        avp += self.generate_avp(263, 40, session_id)                                     
+               #Set session ID to received session ID
+  pyhss\lib\diameter.py:3407:        avp += self.generate_avp(264, 40, self.OriginHost)                                
+               #Origin Host
+  pyhss\lib\diameter.py:3408:        avp += self.generate_avp(296, 40, self.OriginRealm)                               
+               #Origin Realm
+  pyhss\lib\diameter.py:3565:        #Push updated User Data into IMS Backend
+  pyhss\lib\diameter.py:3566:        #Start with the Current User Data
+> pyhss\lib\diameter.py:3567:        subscriber_ims_details = self.database.Get_IMS_Subscriber(imsi=imsi)
+  pyhss\lib\diameter.py:3568:        self.database.UpdateObj(IMS_SUBSCRIBER, {'xcap_profile': sh_user_data}, 
+subscriber_ims_details['ims_subscriber_id'])
+  pyhss\lib\diameter.py:3569:
+  pyhss\lib\diameter.py:3570:        avp = ''                                                                          
+          #Initiate empty var AVP                                                                                      
+     #Session-ID
+  pyhss\lib\diameter.py:3571:        session_id = self.get_avp_data(avps, 263)[0]                                      
+               #Get Session-ID
+  pyhss\lib\diameter.py:3572:        avp += self.generate_avp(263, 40, session_id)                                     
+               #Set session ID to received session ID
+  pyhss\lib\diameter.py:3573:        avp += self.generate_avp(264, 40, self.OriginHost)                                
+               #Origin Host
+  pyhss\lib\diameter.py:3574:        avp += self.generate_avp(296, 40, self.OriginRealm)                               
+               #Origin Realm
+  pyhss\lib\diameter.py:3575:        avp += self.generate_avp(277, 40, "00000001")                                     
+               #Auth-Session-State (No state maintained)
+  pyhss\lib\diameter.py:3680:                try:
+  pyhss\lib\diameter.py:3681:                    subscriberDetails = 
+self.database.Get_Subscriber(imsi=subscriberIdentifier)
+> pyhss\lib\diameter.py:3682:                    imsSubscriberDetails = 
+self.database.Get_IMS_Subscriber(imsi=subscriberIdentifier)
+  pyhss\lib\diameter.py:3683:                    identifier = 'imsi'
+  pyhss\lib\diameter.py:3684:                    imsi = imsSubscriberDetails.get('imsi', None)
+  pyhss\lib\diameter.py:3685:                except Exception as e:
+  pyhss\lib\diameter.py:3686:                    pass
+  pyhss\lib\diameter.py:3687:                try:
+  pyhss\lib\diameter.py:3688:                    subscriberDetails = 
+self.database.Get_Subscriber(msisdn=subscriberIdentifier)
+> pyhss\lib\diameter.py:3689:                    imsSubscriberDetails = 
+self.database.Get_IMS_Subscriber(msisdn=subscriberIdentifier)
+  pyhss\lib\diameter.py:3690:                    identifier = 'msisdn'
+  pyhss\lib\diameter.py:3691:                    msisdn = imsSubscriberDetails.get('msisdn', None)
+  pyhss\lib\diameter.py:3692:                except Exception as e:
+  pyhss\lib\diameter.py:3693:                    pass
+  pyhss\lib\diameter.py:3694:                if identifier == None:
+  pyhss\lib\diameter.py:3695:                    try:
+  pyhss\lib\diameter.py:3696:                        ueIP = subscriptionId.split('@')[1].split(':')[0]
+  pyhss\lib\diameter.py:3697:                        ue = self.database.Get_UE_by_IP(ueIP)
+  pyhss\lib\diameter.py:4073:                try:
+  pyhss\lib\diameter.py:4074:                    subscriberDetails = 
+self.database.Get_Subscriber(imsi=subscriberIdentifier)
+> pyhss\lib\diameter.py:4075:                    imsSubscriberDetails = 
+self.database.Get_IMS_Subscriber(imsi=subscriberIdentifier)
+  pyhss\lib\diameter.py:4076:                    identifier = 'imsi'
+  pyhss\lib\diameter.py:4077:                    imsi = imsSubscriberDetails.get('imsi', None)
+  pyhss\lib\diameter.py:4078:                except Exception as e:
+  pyhss\lib\diameter.py:4079:                    pass
+  pyhss\lib\diameter.py:4080:                try:
+  pyhss\lib\diameter.py:4081:                    subscriberDetails = 
+self.database.Get_Subscriber(msisdn=subscriberIdentifier)
+> pyhss\lib\diameter.py:4082:                    imsSubscriberDetails = 
+self.database.Get_IMS_Subscriber(msisdn=subscriberIdentifier)
+  pyhss\lib\diameter.py:4083:                    identifier = 'msisdn'
+  pyhss\lib\diameter.py:4084:                    msisdn = imsSubscriberDetails.get('msisdn', None)
+  pyhss\lib\diameter.py:4085:                except Exception as e:
+  pyhss\lib\diameter.py:4086:                    pass
+  pyhss\lib\diameter.py:4087:            else:
+  pyhss\lib\diameter.py:4088:                imsi = None
+  pyhss\lib\diameter.py:4089:                msisdn = None
+  pyhss\lib\diameter.py:4090:            self.logTool.log(service='HSS', level='debug', message=f"[diameter.py] 
+[Answer_16777236_258] [RAA] IMSI: {imsi} / MSISDN: {msisdn}", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:4125:            servingApn = None
+  pyhss\lib\diameter.py:4126:            try:
+> pyhss\lib\diameter.py:4127:                imsSubscriber = 
+self.database.Get_IMS_Subscriber_By_Session_Id(sessionId=sessionId)
+  pyhss\lib\diameter.py:4128:                imsi = imsSubscriber.get('imsi', None)
+  pyhss\lib\diameter.py:4129:                pcscf = imsSubscriber.get('pcscf', None)
+  pyhss\lib\diameter.py:4130:                pcscf_realm = imsSubscriber.get('pcscf_realm', None)
+  pyhss\lib\diameter.py:4131:                pcscf_peer = imsSubscriber.get('pcscf_peer', None)
+  pyhss\lib\diameter.py:4132:                subscriber = self.database.Get_Subscriber(imsi=imsi)
+  pyhss\lib\diameter.py:4133:                subscriberId = subscriber.get('subscriber_id', None)
+  pyhss\lib\diameter.py:4134:                apnId = (self.database.Get_APN_by_Name(apn="ims")).get('apn_id', None)
+  pyhss\lib\diameter.py:4135:                servingApn = self.database.Get_Serving_APN(subscriber_id=subscriberId, 
+apn_id=apnId)
+  pyhss\lib\diameter.py:5136:
+  pyhss\lib\diameter.py:5137:        self.logTool.log(service='HSS', level='debug', message="Getting subscriber IMS 
+info based on MSISDN", redisClient=self.redisMessaging)
+> pyhss\lib\diameter.py:5138:        subscriber_ims_details = self.database.Get_IMS_Subscriber(msisdn=msisdn)
+  pyhss\lib\diameter.py:5139:        self.logTool.log(service='HSS', level='debug', message="Got subscriber IMS 
+details: " + str(subscriber_ims_details), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:5140:        self.logTool.log(service='HSS', level='debug', message="Getting subscriber info 
+based on MSISDN", redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:5141:        subscriber_details = self.database.Get_Subscriber(msisdn=msisdn)
+  pyhss\lib\diameter.py:5142:        self.logTool.log(service='HSS', level='debug', message="Got subscriber details: " 
++ str(subscriber_details), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:5143:        subscriber_details = {**subscriber_details, **subscriber_ims_details}
+  pyhss\lib\diameter.py:5144:        self.logTool.log(service='HSS', level='debug', message="Merged subscriber 
+details: " + str(subscriber_details), redisClient=self.redisMessaging)
+  pyhss\lib\diameter.py:5145:
+  pyhss\lib\diameter.py:5146:        avp += self.generate_avp(1, 40, 
+str(binascii.hexlify(str.encode(subscriber_details['imsi'])),'ascii'))                 #Username AVP
+
+

@@ -1,0 +1,80 @@
+[lab-up] == 0/13 chequeo de imágenes ==
+[lab-up] imágenes OK
+[lab-up] == 1/13 base: mongodb + redis ==
+ Volume volte-lab_mongodb_data Creating 
+ Volume volte-lab_mongodb_data Creating 
+ Volume volte-lab_redis_data Creating 
+ Volume volte-lab_redis_data Creating 
+ Volume volte-lab_mongodb_data Created 
+ Volume volte-lab_mongodb_data Created 
+ Container mongodb Creating 
+ Volume volte-lab_redis_data Created 
+ Volume volte-lab_redis_data Created 
+ Container redis Creating 
+ Container mongodb Created 
+ Container redis Created 
+ Container redis Starting 
+ Container mongodb Starting 
+ Container redis Started 
+ Container mongodb Started 
+[lab-up] == 2/13 suscriptores LTE en Mongo (idempotente, int32) ==
+subs=2
+[lab-up] == 3/13 EPC: open5gs ==
+ Container mongodb Running 
+ Container open5gs Creating 
+ Container open5gs Created 
+ Container open5gs Starting 
+ Container open5gs Started 
+open5gs
+[lab-up] ogstun UP antes del attach (breakout UPF listo)
+[lab-up] == 4/13 HSS IMS: pyhss hss/api/diameter ==
+[lab-up] == 5/13 provision IMS en PyHSS (1000/1001/1002, idempotente) ==
+ims provisioning OK
+IMS auth provisioning OK
+[lab-up] IMS auth provisioning OK
+[lab-up] == 6/13 IMS: kamailio (P:4060/I:5060/S:6060, sin puertos al host) ==
+[lab-up] == 7/13 TAS: asterisk ==
+[lab-up] esperando registro Asterisk en S-CSCF (hasta 90s)...
+[lab-up] asterisk Registered OK
+[lab-up] == 8/13 RAN: eNB1 (PCI 1) ==
+ Container mongodb Running 
+ Container open5gs Running 
+ Container srsenb Creating 
+ Container srsenb Created 
+ Container srsenb Starting 
+ Container srsenb Started 
+srsenb
+[lab-up] == 9/13 RAN: eNB2 (PCI 2, configs generadas en .lab-tmp/) ==
+cell2 configs OK
+[lab-up] == 10/13 UE1 (IMSI ...789) ==
+[lab-up] attach srsue intento 1/3...
+[lab-up] srsue attached OK
+[lab-up] == 11/13 UE2 (IMSI ...790) ==
+[lab-up] attach srsue2 intento 1/3...
+[lab-up] srsue2 attached OK
+[lab-up] == 12/13 SIP: baresip 1001 (UE1) + 1002 (UE2) ==
+[lab-up] 1001 y 1002 registrados OK (ojo: vía bridge; el paso 13 los pasa al túnel)
+[lab-up] == 13/13 plano de usuario via GTP ==
+[lab-up] sip_listen srsue = 10.45.0.2:5060
+[lab-up] sip_listen srsue2 = 10.45.0.3:5060
+[lab-up] plano de usuario configurado (validar RTP con llamada de prueba)
+[lab-up] ================ RESUMEN ================
+NAMES            STATUS
+srsue2           Up About a minute
+srsue            Up 2 minutes
+srsenb2          Up About a minute
+srsenb           Up 3 minutes
+asterisk         Up 3 minutes
+kamailio         Up 4 minutes
+pyhss_diameter   Up 4 minutes
+pyhss_api        Up 4 minutes
+pyhss_hss        Up 4 minutes
+open5gs          Up 4 minutes
+redis            Up 4 minutes
+mongodb          Up 4 minutes
+[lab-up] UE1: 3: tun_srsue    inet 10.45.0.2/24 scope global tun_srsue\       valid_lft forever preferred_lft forever
+[lab-up] UE2: 3: tun_srsue    inet 10.45.0.3/24 scope global tun_srsue\       valid_lft forever preferred_lft forever
+[lab-up] Lab UP. Pruebas:
+[lab-up]   1001->1000 (echo): docker exec -d srsue sh -c 'export HOME=/root; baresip -f /root/.baresip -e "/dial 1000@ims.mnc070.mcc999.3gppnetwork.org"'
+[lab-up]   1001->1002       : mismo comando con /dial 1002@ims.mnc070.mcc999.3gppnetwork.org
+[lab-up] Apagado ordenado: ./lab-down.sh

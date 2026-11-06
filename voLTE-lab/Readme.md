@@ -53,6 +53,8 @@ docker build -t kamailio-ims:latest ./kamailio
 docker build -t asterisk-ims:latest ./asterisk
 docker build -t pyhss-local:latest -f ./pyhss/docker/Dockerfile ./pyhss
 docker tag pyhss-local:latest ghcr.io/nickvsnetworking/pyhss/pyhss:development
+# Imagen de cierre: recompila srsue con el workaround de EBI (ver srsran/README_D0.md)
+docker build -f ./srsran/Dockerfile.cierre -t srsran-zmq:latest ./srsran
 docker pull mongo:4.4
 docker pull redis:7.0-alpine
 ```
@@ -106,10 +108,10 @@ Apagado ordenado sin borrar volumenes. Limpieza total opcional:
 | V1 MITM SIP/RTP | Vulnerable confirmado | `results/v1_mitm_sip_*.pcapng`, `v1_audio_*.wav` |
 | V2 DoS IMS | Degradacion real en REGISTER flood | `results/v2_*` (6 pcap + 6 csv) |
 | V3 suplantacion | Vulnerable confirmado | `results/v3_spoof_1001-to-1002.pcapng` |
-| V4 cifrado radio | Bloqueado (sin plano GTP) | ver `kali.md` causa raiz |
-| V5 rogue eNodeB | Ejecutado, no atraido en ventana | `results/v5_rogue_*.log` |
-| V6 GTP-U injection | Bloqueado (sin plano GTP) | ver `kali.md` causa raiz |
-| V7 BYE forjado | Vulnerable confirmado | `results/v7_bye_1001-to-1000_*.pcapng` |
+| V4 cifrado radio | Sustituido por V7 (solicitud empresa) | `results/v7_d3/` |
+| V5 rogue eNodeB | Vulnerable condicionado: PCI 7 + attach OK (sensible a ZMQ) | `results/v5_d3/` |
+| V6 GTP-U injection | Vulnerable/Mitigado (5 inyecciones / 0 respuestas) | `results/v6_d3/` |
+| V7 BYE forjado | Vulnerable + mitigado con BYE en pcap | `results/v7_d3/*` |
 
 Detalle, metricas y contramedidas pendientes en `kali.md`.
 

@@ -1,0 +1,13 @@
+NAMES            STATUS
+srsue2           Up 14 minutes
+srsue            Up 15 minutes
+srsenb2          Up 14 minutes
+srsenb           Up 15 minutes
+asterisk         Up 16 minutes
+kamailio         Up 16 minutes
+pyhss_diameter   Up 16 minutes
+pyhss_api        Up 16 minutes
+pyhss_hss        Up 16 minutes
+open5gs          Up 17 minutes
+redis            Up 17 minutes
+mongodb          Up 17 minutes
